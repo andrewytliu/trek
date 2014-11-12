@@ -21,11 +21,11 @@ public class RpcClient {
         }
     }
 
-    public static DStoreService clientApiStub(int sid) {
+    public static DStoreService serviceStub(int sid) {
         return ProxyUtil.createClientProxy(
                 RpcClient.class.getClassLoader(),
                 DStoreService.class,
-                getClient(sid, "client.json"));
+                getClient(sid, "service.json"));
     }
 
     public static DStoreInternal internalApi(int sid) {
