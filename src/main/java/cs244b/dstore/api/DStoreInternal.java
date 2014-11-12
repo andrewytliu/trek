@@ -1,8 +1,9 @@
 package cs244b.dstore.api;
 
+import cs244b.dstore.storage.StoreAction;
+
 public interface DStoreInternal {
-    // TODO: how to store the message?
-    public void prepare(int view, int op, int commit);
+    public void prepare(int view, StoreAction action, int op, int commit);
     public void prepareOk(int view, int op, int commit);
     public void commit(int view, int commit);
 

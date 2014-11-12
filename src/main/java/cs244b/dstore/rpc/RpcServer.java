@@ -6,7 +6,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.googlecode.jsonrpc4j.JsonRpcServer;
-import cs244b.dstore.HelloService;
 import cs244b.dstore.api.DStoreSetting;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -37,13 +36,6 @@ public class RpcServer extends HttpServlet {
         }
     }
 
-    public class HelloServiceImpl implements HelloService {
-        public String helloworld() {
-            System.out.println("Called!!!");
-            return "Hi everyone!";
-        }
-    }
-
     private Server server;
     private ServletContextHandler context;
 
@@ -52,9 +44,7 @@ public class RpcServer extends HttpServlet {
         context = new ServletContextHandler(ServletContextHandler.SESSIONS);
         context.setContextPath("/");
         server.setHandler(context);
-
-
-    }
+   }
 
     protected <T> void addServlet (T serviceStub, String path) {
         context.addServlet(new ServletHolder(new RpcServlet<T>(serviceStub)), path);

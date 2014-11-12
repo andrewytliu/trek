@@ -11,6 +11,10 @@ public class KeyValueStore {
         store.put("/", "");
     }
 
+    public StoreResponse apply(StoreAction action) {
+        return null;
+    }
+
     public String create(String path, String data, boolean isSequential)
             throws InvalidPathException, AlreadyExistsException, NoParentException {
         path = normalizePath(path);

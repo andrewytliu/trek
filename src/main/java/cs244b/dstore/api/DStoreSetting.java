@@ -7,4 +7,12 @@ public class DStoreSetting {
         // TODO: return from the list of server
         return "http://localhost:" + PORT + "/";
     }
+
+    public static int getServerNum() {
+        return 1;
+    }
+
+    public static int getF() {
+        return (getServerNum() - 1) / 2;
+    }
 }
