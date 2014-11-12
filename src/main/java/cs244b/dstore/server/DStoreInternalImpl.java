@@ -7,10 +7,7 @@ import cs244b.dstore.storage.KeyValueStore;
 import cs244b.dstore.storage.StoreAction;
 import cs244b.dstore.storage.StoreResponse;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.Semaphore;
 
 public class DStoreInternalImpl implements DStoreInternal {
@@ -25,6 +22,7 @@ public class DStoreInternalImpl implements DStoreInternal {
     private List<StoreAction> log;
     private int commit;
     private Map<Integer, Semaphore> voteLock;
+    private Map<Integer, Set<Integer>> voteSet;
     private KeyValueStore storage;
 
     public DStoreInternalImpl(int number) {
@@ -35,6 +33,7 @@ public class DStoreInternalImpl implements DStoreInternal {
         log = new ArrayList<>();
         commit = -1;
         voteLock = new HashMap<>();
+        voteSet = new HashMap<>();
         storage = new KeyValueStore();
     }
 
@@ -47,14 +46,19 @@ public class DStoreInternalImpl implements DStoreInternal {
     }
 
     // TODO: set the timer for commit
-    public int proceedClient(StoreAction action) {
+    public int startTransactionPrimary(StoreAction action) {
+        // TODO: need to redirect the request to primary
         if (!isPrimary()) return -1;
 
+        // Putting the action in log and increase the op number
         log.add(action);
         op++;
+        // Acquire all f semaphore
         Semaphore semaphore = new Semaphore(DStoreSetting.getF());
         semaphore.acquireUninterruptibly(DStoreSetting.getF());
         voteLock.put(op, semaphore);
+        voteSet.put(op, new HashSet<Integer>());
+        // Send prepare to all cohorts
         for (int i = 0; i < DStoreSetting.getServerNum(); ++i) {
             if (i == replicaNumber) continue;
             RpcClient.internalStub(i).prepare(view, action, op, commit);
@@ -63,36 +67,62 @@ public class DStoreInternalImpl implements DStoreInternal {
     }
 
     // TODO: timeout when not succeed
-    public StoreResponse doCommit(int op) {
+    public StoreResponse doCommitPrimary(int op) {
         voteLock.get(op).acquireUninterruptibly();
         voteLock.remove(op);
         return storage.apply(log.get(op));
     }
 
+    private void doCommit(int commit) {
+        for (int i = this.commit + 1; i < commit; ++i) {
+            storage.apply(log.get(i));
+        }
+        this.commit = commit;
+    }
+
     @Override
     public void prepare(int view, StoreAction action, int op, int commit) {
-        // TODO: check log for all early entries
-        // TODO: check view?
-        // TODO: commit number?
+        // State need to be NORMAL
+        if (status != Status.NORMAL) return;
+        // Drop the message if the sender is behind
+        if (this.view > view) return;
+        // TODO: perform state transfer
+        if (this.view < view) return;
+        // Make sure we have all of the previous log
         if (this.op + 1 != op) return;
-
+        // Commit previous log
+        doCommit(commit);
+        // Insert log
         log.add(action);
+        // Increase op number
         this.op++;
         RpcClient.internalStub(getPrimary()).prepareOk(view, op, replicaNumber);
     }
 
     @Override
-    public void prepareOk(int view, int op, int commit) {
-        // TODO: commit number?
-        // TODO: check view?
-        if (voteLock.containsKey(op)) {
+    public void prepareOk(int view, int op, int replica) {
+        // State need to be NORMAL
+        if (status != Status.NORMAL) return;
+        // Drop the message if the sender is behind
+        if (this.view > view) return;
+        // TODO: perform state transfer
+        if (this.view < view) return;
+        // Check if there is duplicated prepareOk and then release semaphore
+        if (voteLock.containsKey(op) && !voteSet.get(op).contains(replica)) {
             voteLock.get(op).release();
+            voteSet.get(op).add(replica);
         }
     }
 
     @Override
     public void commit(int view, int commit) {
-        // TODO: commit number?
+        // State need to be NORMAL
+        if (status != Status.NORMAL) return;
+        // Drop the message if the sender is behind
+        if (this.view > view) return;
+        // TODO: perform state transfer
+        if (this.view < view) return;
+        doCommit(commit);
     }
 
     @Override

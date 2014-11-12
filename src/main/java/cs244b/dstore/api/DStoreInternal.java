@@ -4,7 +4,7 @@ import cs244b.dstore.storage.StoreAction;
 
 public interface DStoreInternal {
     public void prepare(int view, StoreAction action, int op, int commit);
-    public void prepareOk(int view, int op, int commit);
+    public void prepareOk(int view, int op, int replica);
     public void commit(int view, int commit);
 
     public void startViewChange(int view, int replica);
