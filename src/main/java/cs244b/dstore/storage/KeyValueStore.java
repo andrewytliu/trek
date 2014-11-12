@@ -1,4 +1,4 @@
-package cs244b.dstore;
+package cs244b.dstore.storage;
 
 import java.lang.Exception;
 import java.util.HashMap;
