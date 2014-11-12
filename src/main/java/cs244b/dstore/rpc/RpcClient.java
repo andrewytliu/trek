@@ -2,7 +2,7 @@ package cs244b.dstore.rpc;
 
 import com.googlecode.jsonrpc4j.JsonRpcHttpClient;
 import com.googlecode.jsonrpc4j.ProxyUtil;
-import cs244b.dstore.api.DStoreClientAPI;
+import cs244b.dstore.api.DStoreService;
 import cs244b.dstore.api.DStoreInternal;
 import cs244b.dstore.api.DStoreSetting;
 
@@ -21,10 +21,10 @@ public class RpcClient {
         }
     }
 
-    public static DStoreClientAPI clientApiStub(int sid) {
+    public static DStoreService clientApiStub(int sid) {
         return ProxyUtil.createClientProxy(
                 RpcClient.class.getClassLoader(),
-                DStoreClientAPI.class,
+                DStoreService.class,
                 getClient(sid, "client.json"));
     }
 
