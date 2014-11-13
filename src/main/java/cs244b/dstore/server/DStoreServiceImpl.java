@@ -29,19 +29,26 @@ public class DStoreServiceImpl implements DStoreService {
 
     @Override
     public StoreResponse request(StoreAction action, int client, int request) {
+        // Check for client id
         if (!actionMap.containsKey(client)) {
             return new StoreResponse(StoreResponse.Status.INVALID_CLIENT_ID, null);
         }
         int prevRequest = actionMap.get(client);
+        // Replay the previous request
+        // TODO: what if it is processing?
         if (prevRequest == request) {
             return responseMap.get(client);
         }
+        // Drop request with old request number
         if (prevRequest > request) {
             return new StoreResponse(StoreResponse.Status.INVALID_REQUEST_NUM, null);
         }
-        int op = internal.proceedClient(action);
-        StoreResponse response = internal.doCommit(op);
+        // Sending prepare
+        int op = internal.startTransactionPrimary(action);
+        // Collecting prepare ok (or abort)
+        StoreResponse response = internal.doCommitPrimary(op);
         responseMap.put(client, response);
+        // TODO: reply view number?
         return response;
     }
 }
