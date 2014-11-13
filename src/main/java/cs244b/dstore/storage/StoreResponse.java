@@ -7,12 +7,22 @@ public class StoreResponse implements Serializable {
 
     public enum Status {
         OK,
+        NOT_PRIMARY,
         INVALID_CLIENT_ID,
         INVALID_REQUEST_NUM,
         INVALID_PATH,
     }
 
+    public Status getStatus() {
+        return status;
+    }
+
     private Status status;
+
+    public Serializable getValue() {
+        return value;
+    }
+
     private Serializable value;
 
     public StoreResponse(Status s, Serializable v) {

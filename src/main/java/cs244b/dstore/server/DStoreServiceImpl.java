@@ -28,14 +28,22 @@ public class DStoreServiceImpl implements DStoreService {
     }
 
     @Override
+    public int primary() {
+        return internal.getPrimary();
+    }
+
+    @Override
     public StoreResponse request(StoreAction action, int client, int request) {
+        // Check if it is primary
+        if (!internal.isPrimary()) {
+            return new StoreResponse(StoreResponse.Status.NOT_PRIMARY, internal.getPrimary());
+        }
         // Check for client id
         if (!actionMap.containsKey(client)) {
             return new StoreResponse(StoreResponse.Status.INVALID_CLIENT_ID, null);
         }
         int prevRequest = actionMap.get(client);
         // Replay the previous request
-        // TODO: what if it is processing?
         if (prevRequest == request) {
             return responseMap.get(client);
         }
@@ -48,6 +56,7 @@ public class DStoreServiceImpl implements DStoreService {
         // Collecting prepare ok (or abort)
         StoreResponse response = internal.doCommitPrimary(op);
         responseMap.put(client, response);
+        actionMap.put(client, request);
         // TODO: reply view number?
         return response;
     }

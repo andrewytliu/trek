@@ -11,7 +11,8 @@ public class KeyValueStore {
     }
 
     public StoreResponse apply(StoreAction action) {
-        return null;
+        // TODO: actually apply action, replying dummy object for now
+        return new StoreResponse(StoreResponse.Status.OK, "Done");
     }
 
     public String create(String path, String data, boolean isSequential)

@@ -5,5 +5,6 @@ import cs244b.dstore.storage.StoreResponse;
 
 public interface DStoreService {
     public int id();
+    public int primary();
     public StoreResponse request(StoreAction action, int client, int request);
 }

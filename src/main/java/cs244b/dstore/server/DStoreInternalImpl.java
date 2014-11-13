@@ -60,7 +60,7 @@ public class DStoreInternalImpl implements DStoreInternal {
     }
 
     public int getPrimary() {
-        return view % DStoreSetting.getServerNum();
+        return view % DStoreSetting.SERVER.size();
     }
 
     public boolean isPrimary() {
@@ -71,7 +71,7 @@ public class DStoreInternalImpl implements DStoreInternal {
         task = new TimerTask() {
             @Override
             public void run() {
-                for (int i = 0; i < DStoreSetting.getServerNum(); ++i) {
+                for (int i = 0; i < DStoreSetting.SERVER.size(); ++i) {
                     if (i == replicaNumber) continue;
                     RpcClient.internalStub(i).commit(view, commit);
                 }
@@ -91,7 +91,7 @@ public class DStoreInternalImpl implements DStoreInternal {
             public void run() {
                 status = Status.VIEWCHANGE;
                 view++;
-                for (int i = 0; i < DStoreSetting.getServerNum(); ++i) {
+                for (int i = 0; i < DStoreSetting.SERVER.size(); ++i) {
                     RpcClient.internalStub(i).startViewChange(view, replicaNumber);
                 }
             }
@@ -119,7 +119,7 @@ public class DStoreInternalImpl implements DStoreInternal {
         voteSet.put(op, new HashSet<Integer>());
         // Send prepare to all cohorts
         clearPrimaryTimer();
-        for (int i = 0; i < DStoreSetting.getServerNum(); ++i) {
+        for (int i = 0; i < DStoreSetting.SERVER.size(); ++i) {
             if (i == replicaNumber) continue;
             RpcClient.internalStub(i).prepare(view, action, op, commit);
         }
@@ -212,7 +212,7 @@ public class DStoreInternalImpl implements DStoreInternal {
         // Change state
         status = Status.VIEWCHANGE;
         // Check view: something must be wrong here
-        if (view % DStoreSetting.getServerNum() != replicaNumber) return;
+        if (view % DStoreSetting.SERVER.size() != replicaNumber) return;
         if (!doViewSet.containsKey(view)) {
             doViewSet.put(view, new HashSet<Integer>());
             // TODO: should we group it with group number?
@@ -239,7 +239,7 @@ public class DStoreInternalImpl implements DStoreInternal {
             status = Status.NORMAL;
             // Sending startView
             clearPrimaryTimer();
-            for (int i = 0; i < DStoreSetting.getServerNum(); ++i) {
+            for (int i = 0; i < DStoreSetting.SERVER.size(); ++i) {
                 if (i == replicaNumber) continue;
                 RpcClient.internalStub(i).
                         startView(view, this.log, this.op, this.commit);
