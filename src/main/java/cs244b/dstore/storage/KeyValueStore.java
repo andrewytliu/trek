@@ -1,7 +1,7 @@
 package cs244b.dstore.storage;
 
 import java.lang.Exception;
-import java.util.TreeMap;
+import java.util.*;
 
 public class KeyValueStore {
     private TreeMap<String, Entry> store;
@@ -14,57 +14,80 @@ public class KeyValueStore {
         return null;
     }
 
-    public Entry create(String path, String data, boolean isSequential)
-            throws InvalidPathException, AlreadyExistsException, NoParentException {
+    public String create(String path, String data, boolean isSequential)
+            throws NodeExistsException, NoNodeException {
         path = normalizePath(path);
-        if (path == "/") {
-            throw new InvalidPathException();
+        if (path.equals("/")) {
+            throw new IllegalArgumentException();
         }
         if (!isSequential && store.containsKey(path)) {
-            throw new AlreadyExistsException();
+            throw new NodeExistsException();
         }
         String parent = path.substring(0, path.lastIndexOf('/'));
-        if (parent != "" && !store.containsKey(parent)) {
-            throw new NoParentException();
+        if (!parent.equals("") && !store.containsKey(parent)) {
+            throw new NoNodeException();
         }
         Entry dataEntry = new Entry(data);
-        store.put(path, dataEntry);
-        return dataEntry;
+        //TODO: Handle sequential
+        store.put(path, new Entry(dataEntry));
+        return path;
     }
 
     public void delete(String path, int version)
-            throws DoesNotExistException, StaleVersionException {
-        try {
-            path = normalizePath(path);
-        } catch (InvalidPathException e) {
-            throw new DoesNotExistException();
-        }
+            throws NoNodeException, BadVersionException {
+        path = normalizePath(path);
         Entry dataEntry = store.get(path);
         if (dataEntry == null) {
-            throw new DoesNotExistException();
+            throw new NoNodeException();
         }
-        if (dataEntry.version <= version) {
-            store.remove(path);
-        } else {
-            throw new StaleVersionException();
+        if (dataEntry.version != version) {
+            throw new BadVersionException();
         }
+        store.remove(path);
     }
 
     public boolean exists(String path) {
-        return false;
+        path = normalizePath(path);
+        return store.containsKey(path);
     }
 
-    public Entry getData(String path) throws DoesNotExistException {
-        return null;
+    public Entry getData(String path) throws NoNodeException {
+        path = normalizePath(path);
+        Entry dataEntry = store.get(path);
+        if (dataEntry == null) {
+            throw new NoNodeException();
+        }
+        return new Entry(dataEntry);
     }
 
     public Entry setData(String path, String data, int version)
-            throws DoesNotExistException, StaleVersionException {
-        return null;
+            throws NoNodeException, BadVersionException {
+        path = normalizePath(path);
+        Entry dataEntry = store.get(path);
+        if (dataEntry == null) {
+            throw new NoNodeException();
+        }
+        if (dataEntry.version != version) {
+            throw new BadVersionException();
+        }
+        dataEntry.value = data;
+        dataEntry.version++;
+        return new Entry(dataEntry);
     }
 
-    public String[] getChildren(String path) throws DoesNotExistException {
-        return new String[5];
+    public List<String> getChildren(String path) throws NoNodeException {
+        path = normalizePath(path);
+        Set<String> childPaths;
+        if (path.equals("/")) {
+            childPaths = store.subMap("/A", "/{").keySet();
+        } else {
+            childPaths = store.subMap(path + "/A", path + "/{").keySet();
+        }
+        ArrayList<String> results = new ArrayList<>();
+        for (String childPath : childPaths) {
+            results.add(childPath.substring(childPath.lastIndexOf('/')+1));
+        }
+        return results;
     }
 
     public void takeSnapshot() {
@@ -75,27 +98,21 @@ public class KeyValueStore {
 
     }
 
-    public static class InvalidPathException extends Exception {
+    public static class NodeExistsException extends Exception {
     }
 
-    public static class AlreadyExistsException extends Exception {
+    public static class NoNodeException extends Exception {
     }
 
-    public static class NoParentException extends Exception {
-    }
-
-    public static class DoesNotExistException extends Exception {
-    }
-
-    public static class StaleVersionException extends Exception {
+    public static class BadVersionException extends Exception {
     }
 
     public static class NoSnapshotException extends Exception {
     }
 
-    private static String normalizePath(String path) throws InvalidPathException {
-        if (!path.matches("^/[a-zA-Z0-9_/]*")) {
-            throw new InvalidPathException();
+    private static String normalizePath(String path) {
+        if (path == null || !path.matches("^/[a-zA-Z0-9_/]*")) {
+            throw new IllegalArgumentException();
         }
         StringBuilder sb = new StringBuilder("/");
         char last = '/';
@@ -105,7 +122,7 @@ public class KeyValueStore {
                 continue;
             }
             if (last == '/' && cur >= '0' && cur <= '9') {
-                throw new InvalidPathException();
+                throw new IllegalArgumentException();
             }
             sb.append(cur);
             last = cur;

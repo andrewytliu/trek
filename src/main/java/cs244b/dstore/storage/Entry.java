@@ -8,4 +8,9 @@ public class Entry {
         this.value = value;
         this.version = 0;
     }
+
+    public Entry (Entry e) {
+        this.value = e.value;
+        this.version = e.version;
+    }
 }
