@@ -27,6 +27,7 @@ public class KeyValueStore {
         if (!parent.equals("") && !store.containsKey(parent)) {
             throw new NoNodeException();
         }
+
         Entry dataEntry = new Entry(data);
         //TODO: Handle sequential
         store.put(path, new Entry(dataEntry));
@@ -77,15 +78,22 @@ public class KeyValueStore {
 
     public List<String> getChildren(String path) throws NoNodeException {
         path = normalizePath(path);
-        Set<String> childPaths;
+        Set<String> range;
+        int offset;
         if (path.equals("/")) {
-            childPaths = store.subMap("/A", "/{").keySet();
+            range = store.subMap("/A", "/{").keySet();
+            offset = 1;
         } else {
-            childPaths = store.subMap(path + "/A", path + "/{").keySet();
+            range = store.subMap(path + "/A", path + "/{").keySet();
+            offset = path.length() + 1;
         }
+
         ArrayList<String> results = new ArrayList<>();
-        for (String childPath : childPaths) {
-            results.add(childPath.substring(childPath.lastIndexOf('/')+1));
+        for (String candidate : range) {
+            String name = candidate.substring(offset);
+            if (!name.contains("/")) {
+                results.add(name);
+            }
         }
         return results;
     }
@@ -131,5 +139,22 @@ public class KeyValueStore {
             sb.deleteCharAt(sb.length()-1);
         }
         return sb.toString();
+    }
+
+    public static void main (String[] args) throws NoNodeException, NodeExistsException {
+        KeyValueStore s = new KeyValueStore();
+        s.create("/a", "foo", false);
+        s.create("/b", "bar", false);
+        s.create("/a1", "aaa", false);
+        s.create("/a/d", "x", false);
+        s.create("/a/c", "w", false);
+        List<String> children = s.getChildren("/");
+        for (String res : children) {
+            System.out.println(res);
+        }
+        children = s.getChildren("/a//");
+        for (String res : children) {
+            System.out.println(res);
+        }
     }
 }
