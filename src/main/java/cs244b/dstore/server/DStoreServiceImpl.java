@@ -48,6 +48,7 @@ public class DStoreServiceImpl implements DStoreService {
         // Collecting prepare ok (or abort)
         StoreResponse response = internal.doCommitPrimary(op);
         responseMap.put(client, response);
+        // TODO: reply view number?
         return response;
     }
 }
