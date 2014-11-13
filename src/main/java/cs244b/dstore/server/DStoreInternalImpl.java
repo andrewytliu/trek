@@ -34,6 +34,9 @@ public class DStoreInternalImpl implements DStoreInternal {
     private int vcCommit;
     // Storage
     private KeyValueStore storage;
+    // Timer
+    private Timer timer;
+    private TimerTask task;
 
     public DStoreInternalImpl(int number) {
         replicaNumber = number;
@@ -47,6 +50,13 @@ public class DStoreInternalImpl implements DStoreInternal {
         viewSet = new HashMap<>();
         doViewSet = new HashMap<>();
         storage = new KeyValueStore();
+        timer = new Timer();
+
+        if (isPrimary()) {
+            setPrimaryTimer();
+        } else {
+            setTimer();
+        }
     }
 
     public int getPrimary() {
@@ -55,6 +65,43 @@ public class DStoreInternalImpl implements DStoreInternal {
 
     public boolean isPrimary() {
         return getPrimary() == replicaNumber;
+    }
+
+    private void setPrimaryTimer() {
+        task = new TimerTask() {
+            @Override
+            public void run() {
+                for (int i = 0; i < DStoreSetting.getServerNum(); ++i) {
+                    if (i == replicaNumber) continue;
+                    RpcClient.internalStub(i).commit(view, commit);
+                }
+            }
+        };
+        timer.schedule(task, DStoreSetting.HEARTBEAT_SOFT);
+    }
+
+    private void clearPrimaryTimer() {
+        task.cancel();
+        setPrimaryTimer();
+    }
+
+    private void setTimer() {
+        task = new TimerTask() {
+            @Override
+            public void run() {
+                status = Status.VIEWCHANGE;
+                view++;
+                for (int i = 0; i < DStoreSetting.getServerNum(); ++i) {
+                    RpcClient.internalStub(i).startViewChange(view, replicaNumber);
+                }
+            }
+        };
+        timer.schedule(task, DStoreSetting.HEARTBEAT_HARD);
+    }
+
+    private void clearTimer() {
+        task.cancel();
+        setTimer();
     }
 
     // TODO: set the timer for commit
@@ -71,6 +118,7 @@ public class DStoreInternalImpl implements DStoreInternal {
         voteLock.put(op, semaphore);
         voteSet.put(op, new HashSet<Integer>());
         // Send prepare to all cohorts
+        clearPrimaryTimer();
         for (int i = 0; i < DStoreSetting.getServerNum(); ++i) {
             if (i == replicaNumber) continue;
             RpcClient.internalStub(i).prepare(view, action, op, commit);
@@ -108,6 +156,7 @@ public class DStoreInternalImpl implements DStoreInternal {
         log.add(action);
         // Increase op number
         this.op++;
+        clearTimer();
         RpcClient.internalStub(getPrimary()).prepareOk(view, op, replicaNumber);
     }
 
@@ -134,6 +183,7 @@ public class DStoreInternalImpl implements DStoreInternal {
         if (this.view > view) return;
         // TODO: perform state transfer
         if (this.view < view) return;
+        clearTimer();
         doCommit(commit);
     }
 
@@ -146,6 +196,8 @@ public class DStoreInternalImpl implements DStoreInternal {
             viewSet.put(view, new HashSet<Integer>());
         }
         viewSet.get(view).add(replica);
+        // Clear timer
+        clearTimer();
         // Receiving f vote: reply
         if (viewSet.get(view).size() == DStoreSetting.getF()) {
             RpcClient.internalStub(getPrimary()).
@@ -177,6 +229,7 @@ public class DStoreInternalImpl implements DStoreInternal {
             vcLog = log;
             vcCommit = commit;
         }
+        clearTimer();
         // Receiving f + 1 vote: view change
         if (doViewSet.get(view).size() == DStoreSetting.getF() + 1) {
             this.view = view;
@@ -185,6 +238,7 @@ public class DStoreInternalImpl implements DStoreInternal {
             this.log = vcLog;
             status = Status.NORMAL;
             // Sending startView
+            clearPrimaryTimer();
             for (int i = 0; i < DStoreSetting.getServerNum(); ++i) {
                 if (i == replicaNumber) continue;
                 RpcClient.internalStub(i).
@@ -207,6 +261,7 @@ public class DStoreInternalImpl implements DStoreInternal {
                 RpcClient.internalStub(getPrimary()).prepareOk(view, i, replicaNumber);
             }
         }
+        clearTimer();
     }
 
     @Override
