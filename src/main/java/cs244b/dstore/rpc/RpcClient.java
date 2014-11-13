@@ -12,9 +12,8 @@ import java.net.URL;
 public class RpcClient {
     private static JsonRpcHttpClient getClient(int sid, String path) {
         try {
-            JsonRpcHttpClient client = new JsonRpcHttpClient(
+            return new JsonRpcHttpClient(
                     new URL(DStoreSetting.SERVER.get(sid) + path));
-            return client;
         } catch (MalformedURLException e) {
             e.printStackTrace();
             return null;
