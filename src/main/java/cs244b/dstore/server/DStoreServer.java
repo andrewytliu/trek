@@ -15,10 +15,10 @@ public class DStoreServer extends RpcServer {
 
     public static void main(String[] args) {
         if (args.length != 2) {
-            System.err.println("[USAGE] server1|server2|... this_server");
+            System.err.println("[USAGE] server1|server2|... server_index");
         }
         DStoreSetting.setServer(args[0]);
         DStoreServer server = new DStoreServer();
-        server.start(DStoreSetting.SERVER.indexOf(args[1]));
+        server.start(Integer.valueOf(args[1]));
     }
 }
