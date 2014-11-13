@@ -9,6 +9,8 @@ import cs244b.dstore.storage.StoreResponse;
 
 import java.util.*;
 import java.util.concurrent.Semaphore;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class DStoreInternalImpl implements DStoreInternal {
     private enum Status {
@@ -37,6 +39,8 @@ public class DStoreInternalImpl implements DStoreInternal {
     // Timer
     private Timer timer;
     private TimerTask task;
+    // Log
+    private static final Logger logger = Logger.getLogger("cs244b.VR");
 
     public DStoreInternalImpl(int number) {
         replicaNumber = number;
@@ -57,6 +61,10 @@ public class DStoreInternalImpl implements DStoreInternal {
         } else {
             setTimer();
         }
+    }
+
+    private void log(String l) {
+        logger.log(Level.INFO, "R: " + replicaNumber + ", V: " + view + ", Op: " + op + ", Ci: " + commit + " => " + l);
     }
 
     public int getPrimary() {
@@ -106,6 +114,7 @@ public class DStoreInternalImpl implements DStoreInternal {
 
     // TODO: set the timer for commit
     public int startTransactionPrimary(StoreAction action) {
+        log("StartTransactionPrimary()");
         // TODO: need to redirect the request to primary
         if (!isPrimary()) return -1;
 
@@ -128,12 +137,14 @@ public class DStoreInternalImpl implements DStoreInternal {
 
     // TODO: timeout when not succeed
     public StoreResponse doCommitPrimary(int op) {
+        log("doCommitPrimary(" + op + ")");
         voteLock.get(op).acquireUninterruptibly();
         voteLock.remove(op);
         return storage.apply(log.get(op));
     }
 
     private void doCommit(int commit) {
+        log("doCommit(" + commit + ")");
         for (int i = this.commit + 1; i < commit; ++i) {
             storage.apply(log.get(i));
         }
@@ -142,6 +153,7 @@ public class DStoreInternalImpl implements DStoreInternal {
 
     @Override
     public void prepare(int view, StoreAction action, int op, int commit) {
+        log("prepare(v: " + view + ", m, op: " + op + ", ci: " + commit + ")");
         // State need to be NORMAL
         if (status != Status.NORMAL) return;
         // Drop the message if the sender is behind
@@ -162,6 +174,7 @@ public class DStoreInternalImpl implements DStoreInternal {
 
     @Override
     public void prepareOk(int view, int op, int replica) {
+        log("prepareOk(v: " + view + ", op: " + op + ", r: " + replica + ")");
         // State need to be NORMAL
         if (status != Status.NORMAL) return;
         // Drop the message if the sender is behind
@@ -177,6 +190,7 @@ public class DStoreInternalImpl implements DStoreInternal {
 
     @Override
     public void commit(int view, int commit) {
+        log("commit(v: " + view + ", ci: " + commit + ")");
         // State need to be NORMAL
         if (status != Status.NORMAL) return;
         // Drop the message if the sender is behind
@@ -189,6 +203,7 @@ public class DStoreInternalImpl implements DStoreInternal {
 
     @Override
     public void startViewChange(int view, int replica) {
+        log("startViewChange(v: " + view + ", r: " + replica + ")");
         if (this.view >= view) return;
         // Change state
         status = Status.VIEWCHANGE;
@@ -208,6 +223,7 @@ public class DStoreInternalImpl implements DStoreInternal {
     @Override
     public void doViewChange(int view, List<StoreAction> log,
                              int oldView, int op, int commit, int replica) {
+        log("doViewChange(v: " + view + ", log, ov: " + oldView + ", op: " + op + ", ci: " + commit + ", r: " + replica + ")");
         if (this.view >= view) return;
         // Change state
         status = Status.VIEWCHANGE;
@@ -249,6 +265,7 @@ public class DStoreInternalImpl implements DStoreInternal {
 
     @Override
     public void startView(int view, List<StoreAction> log, int op, int commit) {
+        log("startView(v: " + view + ", log, op: " + op + ", ci: " + commit + ")");
         if (this.view >= view) return;
 
         status = Status.NORMAL;
