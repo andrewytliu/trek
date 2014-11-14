@@ -46,7 +46,7 @@ public class DStoreInternalImpl implements DStoreInternal {
         replicaNumber = number;
         view = 0;
         status = Status.NORMAL;
-        op = 0;
+        op = -1;
         log = new ArrayList<>();
         commit = -1;
         voteLock = new HashMap<>();
