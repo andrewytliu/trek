@@ -18,7 +18,7 @@ public class KeyValueStore {
     public String create(String path, String data, boolean isSequential)
             throws NodeExistsException, NoNodeException {
         path = normalizePath(path);
-        if (path.equals("/")) {
+        if (path.equals("/") || path.lastIndexOf(':') > path.lastIndexOf('/')) {
             throw new IllegalArgumentException();
         }
         if (!isSequential && store.containsKey(path)) {
@@ -28,9 +28,11 @@ public class KeyValueStore {
         if (!parent.equals("") && !store.containsKey(parent)) {
             throw new NoNodeException();
         }
-
         Entry dataEntry = new Entry(data);
-        //TODO: Handle sequential
+        if(isSequential) {
+            int seqValue = getNextSeqValue(path);
+            path = path + ":" + seqValue;
+        }
         store.put(path, new Entry(dataEntry));
         return path;
     }
@@ -42,7 +44,7 @@ public class KeyValueStore {
         if (dataEntry == null) {
             throw new NoNodeException();
         }
-        if (dataEntry.version != version) {
+        if (version >= 0 && dataEntry.version != version) {
             throw new BadVersionException();
         }
         store.remove(path);
@@ -69,7 +71,7 @@ public class KeyValueStore {
         if (dataEntry == null) {
             throw new NoNodeException();
         }
-        if (dataEntry.version != version) {
+        if (version >= 0 && dataEntry.version != version) {
             throw new BadVersionException();
         }
         dataEntry.value = data;
@@ -82,16 +84,16 @@ public class KeyValueStore {
         Set<String> range;
         int offset;
         if (path.equals("/")) {
-            range = store.subMap("/A", "/{").keySet();
+            range = store.subMap("/", "/{").keySet();
             offset = 1;
         } else {
-            range = store.subMap(path + "/A", path + "/{").keySet();
+            range = store.subMap(path + "/", path + "/{").keySet();
             offset = path.length() + 1;
         }
 
         ArrayList<String> results = new ArrayList<>();
-        for (String candidate : range) {
-            String name = candidate.substring(offset);
+        for (String key : range) {
+            String name = key.substring(offset);
             if (!name.contains("/")) {
                 results.add(name);
             }
@@ -120,7 +122,7 @@ public class KeyValueStore {
     }
 
     private static String normalizePath(String path) {
-        if (path == null || !path.matches("^/[a-zA-Z0-9_/]*")) {
+        if (path == null || !path.matches("^/[a-zA-Z0-9:_/]*")) {
             throw new IllegalArgumentException();
         }
         StringBuilder sb = new StringBuilder("/");
@@ -129,9 +131,6 @@ public class KeyValueStore {
             char cur = path.charAt(i);
             if (last == '/' && cur == '/') {
                 continue;
-            }
-            if (last == '/' && cur >= '0' && cur <= '9') {
-                throw new IllegalArgumentException();
             }
             sb.append(cur);
             last = cur;
@@ -142,20 +141,32 @@ public class KeyValueStore {
         return sb.toString();
     }
 
-    public static void main (String[] args) throws NoNodeException, NodeExistsException {
+    private int getNextSeqValue(String path) {
+        Set<String> range = store.subMap(path + ":", path + ";").keySet();
+        int offset = path.length() + 1;
+        int max = -1;
+        for (String key : range) {
+            int seqValue = Integer.parseInt(key.substring(offset));
+            max = (seqValue > max) ? seqValue : max;
+        }
+        return max+1;
+    }
+
+    public static void main (String[] args) throws NoNodeException, NodeExistsException, BadVersionException {
         KeyValueStore s = new KeyValueStore();
-        s.create("/a", "foo", false);
-        s.create("/b", "bar", false);
-        s.create("/a1", "aaa", false);
-        s.create("/a/d", "x", false);
-        s.create("/a/c", "w", false);
+        try {
+            s.create("/a:1", "foo", false);
+        } catch (IllegalArgumentException e) {
+            System.out.println("OK");
+        }
+        s.create("/a", "foo", true);
+        s.create("/a", "bar", true);
         List<String> children = s.getChildren("/");
-        for (String res : children) {
-            System.out.println(res);
+        for (String c : children) {
+            System.out.print(c + " ");
         }
-        children = s.getChildren("/a//");
-        for (String res : children) {
-            System.out.println(res);
-        }
+        System.out.println();
+        s.setData("/a:1", "baz", -1);
+        System.out.println(s.getData("/a:1").value + " " + s.getData("/a:1").version);
     }
 }
