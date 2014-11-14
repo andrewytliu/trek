@@ -79,6 +79,7 @@ public class DStoreInternalImpl implements DStoreInternal {
         task = new TimerTask() {
             @Override
             public void run() {
+                log("Primary Timer Ticked");
                 for (int i = 0; i < DStoreSetting.SERVER.size(); ++i) {
                     if (i == replicaNumber) continue;
                     RpcClient.internalStub(i).commit(view, commit);
@@ -97,6 +98,7 @@ public class DStoreInternalImpl implements DStoreInternal {
         task = new TimerTask() {
             @Override
             public void run() {
+                log("Normal Timer Ticked");
                 status = Status.VIEWCHANGE;
                 view++;
                 for (int i = 0; i < DStoreSetting.SERVER.size(); ++i) {
