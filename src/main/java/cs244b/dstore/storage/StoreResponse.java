@@ -34,6 +34,8 @@ public class StoreResponse extends JsonSerializable implements Serializable {
         value = v;
     }
 
+    public StoreResonse() {}
+
     public void setPresentation(String p) throws IOException, ClassNotFoundException {
         StoreResponse resp = (StoreResponse) parsePresentation(p);
         this.status = resp.status;
