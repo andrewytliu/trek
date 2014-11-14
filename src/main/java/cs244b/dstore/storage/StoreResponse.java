@@ -14,6 +14,9 @@ public class StoreResponse extends JsonSerializable implements Serializable {
         INVALID_CLIENT_ID,
         INVALID_REQUEST_NUM,
         INVALID_PATH,
+        NODE_EXISTS,
+        NO_NODE,
+        BAD_VERSION,
     }
 
     private Status status;

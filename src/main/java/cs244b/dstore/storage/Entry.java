@@ -1,6 +1,8 @@
 package cs244b.dstore.storage;
 
-public class Entry {
+import java.io.Serializable;
+
+public class Entry implements Serializable {
     public String value;
     public int version;
 
