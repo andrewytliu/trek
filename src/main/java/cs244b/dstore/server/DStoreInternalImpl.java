@@ -137,8 +137,11 @@ public class DStoreInternalImpl implements DStoreInternal {
     // TODO: timeout when not succeed
     public StoreResponse doCommitPrimary(int op) {
         log("doCommitPrimary(" + op + ")");
+        // TODO: something must be wrong here
+        if (commit + 1 != op) return null;
         voteLock.get(op).acquireUninterruptibly();
         voteLock.remove(op);
+        commit = op;
         return storage.apply(log.get(op));
     }
 
