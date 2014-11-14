@@ -7,8 +7,11 @@ import cs244b.dstore.storage.StoreResponse;
 import jline.console.ConsoleReader;
 
 import java.io.IOException;
+import java.util.logging.Logger;
 
 public class DStoreClient {
+    private static Logger logger = Logger.getLogger("cs244b.client");
+
     private int primary;
     private int client;
     private int request;
@@ -20,15 +23,28 @@ public class DStoreClient {
     }
 
     private void switchPrimary() {
-        primary = RpcClient.serviceStub(primary).primary();
-        client = RpcClient.serviceStub(primary).id();
+        while (true) {
+            try {
+                logger.info("Testing primary: " + primary);
+                primary = RpcClient.serviceStub(primary).primary();
+                logger.info("Getting client id: " + client);
+                client = RpcClient.serviceStub(primary).id();
+                break;
+            } catch (Throwable t) {
+                primary = ++primary % DStoreSetting.SERVER.size();
+            }
+        }
     }
 
     public StoreResponse request(StoreAction action) {
         StoreResponse resp;
         while (true) {
-            resp = RpcClient.serviceStub(0).request(action, client, request);
-            if (resp.getStatus() != StoreResponse.Status.NOT_PRIMARY) break;
+            try {
+                resp = RpcClient.serviceStub(0).request(action, client, request);
+                if (resp.getStatus() != StoreResponse.Status.NOT_PRIMARY) break;
+            } catch (Throwable t) {
+
+            }
             switchPrimary();
         }
         request++;
