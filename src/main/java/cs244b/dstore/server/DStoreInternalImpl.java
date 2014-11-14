@@ -278,6 +278,7 @@ public class DStoreInternalImpl implements DStoreInternal {
         this.log = log;
         this.op = op;
         this.commit = commit;
+        this.view = view;
         // Handling uncommitted operation
         if (commit < log.size() - 1) {
             for (int i = commit + 1; i < log.size(); ++i) {
