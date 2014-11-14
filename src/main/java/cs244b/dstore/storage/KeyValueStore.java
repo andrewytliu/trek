@@ -1,13 +1,16 @@
 package cs244b.dstore.storage;
 
+import java.io.*;
 import java.lang.Exception;
 import java.util.*;
 
 public class KeyValueStore {
     private TreeMap<String, Entry> store;
+    private String snapshotPath;
 
     public KeyValueStore() {
         store = new TreeMap<String, Entry>();
+        snapshotPath = System.getProperty("user.home") + "/.dstore/snapshot.ser";
     }
 
     public StoreResponse apply(StoreAction action) {
@@ -102,11 +105,37 @@ public class KeyValueStore {
     }
 
     public void takeSnapshot() {
-
+        try {
+            File dir = new File(System.getProperty("user.home") + "/.dstore");
+            dir.mkdir();
+            FileOutputStream fileStream = new FileOutputStream(snapshotPath);
+            ObjectOutputStream out = new ObjectOutputStream(fileStream);
+            out.writeObject(store);
+            out.close();
+            fileStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
     }
 
-    public void restoreSnapshot() throws NoSnapshotException {
-
+    public boolean restoreSnapshot() {
+        try {
+            File f = new File(snapshotPath);
+            if (!f.isFile() || !f.canRead()) {
+                return false;
+            }
+            FileInputStream fileStream = new FileInputStream(f);
+            ObjectInputStream in = new ObjectInputStream(fileStream);
+            store = (TreeMap<String, Entry>)in.readObject();
+            in.close();
+            fileStream.close();
+            return true;
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+        return false;
     }
 
     public static class NodeExistsException extends Exception {
@@ -116,9 +145,6 @@ public class KeyValueStore {
     }
 
     public static class BadVersionException extends Exception {
-    }
-
-    public static class NoSnapshotException extends Exception {
     }
 
     private static String normalizePath(String path) {
@@ -161,12 +187,15 @@ public class KeyValueStore {
         }
         s.create("/a", "foo", true);
         s.create("/a", "bar", true);
-        List<String> children = s.getChildren("/");
+        s.setData("/a:1", "baz", -1);
+        s.takeSnapshot();
+        KeyValueStore t = new KeyValueStore();
+        t.restoreSnapshot();
+        List<String> children = t.getChildren("/");
         for (String c : children) {
             System.out.print(c + " ");
         }
         System.out.println();
-        s.setData("/a:1", "baz", -1);
-        System.out.println(s.getData("/a:1").value + " " + s.getData("/a:1").version);
+        System.out.println(t.getData("/a:1").value + " " + t.getData("/a:1").version);
     }
 }
