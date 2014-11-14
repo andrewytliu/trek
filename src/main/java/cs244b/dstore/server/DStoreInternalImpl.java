@@ -63,6 +63,8 @@ public class DStoreInternalImpl implements DStoreInternal {
         storage = new KeyValueStore();
         timer = new Timer();
         timerId = new AtomicInteger();
+        recoveryLock = new Semaphore(-DStoreSetting.getF());
+        recoverySet = new HashSet<>();
 
         initTimer();
     }
@@ -187,8 +189,6 @@ public class DStoreInternalImpl implements DStoreInternal {
             if (i == replicaNumber) continue;
             RpcClient.internalStub(i).recovery(replicaNumber, nonce);
         }
-        recoveryLock = new Semaphore(-DStoreSetting.getF());
-        recoverySet = new HashSet<>();
     }
 
     public void doRecovery() {
