@@ -16,6 +16,7 @@ import java.lang.reflect.Proxy;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class RpcClient {
@@ -70,9 +71,54 @@ public class RpcClient {
     }
 
     public static DStoreInternal internalStub(int sid) {
-        return createClientProxy(
+       DStoreInternal internal = createClientProxy(
                 RpcClient.class.getClassLoader(),
                 DStoreInternal.class,
                 getClient(sid, "internal.json"));
+        if (internal == null) {
+            return new DStoreInternal() {
+                @Override
+                public void prepare(int view, StoreAction action, int op, int commit) {
+
+                }
+
+                @Override
+                public void prepareOk(int view, int op, int replica) {
+
+                }
+
+                @Override
+                public void commit(int view, int commit) {
+
+                }
+
+                @Override
+                public void startViewChange(int view, int replica) {
+
+                }
+
+                @Override
+                public void doViewChange(int view, List<StoreAction> log, int oldView, int op, int commit, int replica) {
+
+                }
+
+                @Override
+                public void startView(int view, List<StoreAction> log, int op, int commit) {
+
+                }
+
+                @Override
+                public void recovery(int replica, int nonce) {
+
+                }
+
+                @Override
+                public void recoveryResponse(int view, int nonce, int[] log, int op, int commit, int replica) {
+
+                }
+            };
+        } else {
+            return internal;
+        }
     }
 }
