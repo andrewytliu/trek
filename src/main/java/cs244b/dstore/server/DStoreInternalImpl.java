@@ -64,11 +64,7 @@ public class DStoreInternalImpl implements DStoreInternal {
         timer = new Timer();
         timerId = new AtomicInteger();
 
-        if (isPrimary()) {
-            setPrimaryTimer();
-        } else {
-            setTimer();
-        }
+        initTimer();
     }
 
     private void log(String l) {
@@ -81,6 +77,14 @@ public class DStoreInternalImpl implements DStoreInternal {
 
     public boolean isPrimary() {
         return getPrimary() == replicaNumber;
+    }
+
+    public void initTimer() {
+        if (isPrimary()) {
+            setPrimaryTimer();
+        } else {
+            setTimer();
+        }
     }
 
     private void setPrimaryTimer() {
@@ -173,6 +177,10 @@ public class DStoreInternalImpl implements DStoreInternal {
 
     public void startRecovery() {
         log("startRecovery()");
+        // Killing timer
+        if (task != null) task.cancel();
+        timerId.incrementAndGet();
+        // Setup
         int nonce = (int) (Math.random() * 1e5);
         status = Status.RECOVERING;
         for (int i = 0; i < DStoreSetting.SERVER.size(); ++i) {
@@ -188,6 +196,7 @@ public class DStoreInternalImpl implements DStoreInternal {
         recoveryLock.acquireUninterruptibly();
         doCommit(recoveryCommit);
         status = Status.NORMAL;
+        initTimer();
     }
 
     @Override
