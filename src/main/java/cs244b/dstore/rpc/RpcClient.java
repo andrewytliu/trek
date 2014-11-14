@@ -8,7 +8,6 @@ import cs244b.dstore.api.DStoreService;
 import cs244b.dstore.api.DStoreInternal;
 import cs244b.dstore.api.DStoreSetting;
 import cs244b.dstore.storage.StoreAction;
-import cs244b.dstore.storage.StoreResponse;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -17,7 +16,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class RpcClient {
     private static JsonRpcHttpClient getClient(int sid, String path) {
@@ -113,7 +111,7 @@ public class RpcClient {
                 }
 
                 @Override
-                public void recoveryResponse(int view, int nonce, int[] log, int op, int commit, int replica) {
+                public void recoveryResponse(int view, int nonce, List<StoreAction> log, int op, int commit, int replica) {
 
                 }
             };

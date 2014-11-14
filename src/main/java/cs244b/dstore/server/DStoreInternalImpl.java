@@ -35,6 +35,11 @@ public class DStoreInternalImpl implements DStoreInternal {
     private int vcOp;
     private List<StoreAction> vcLog;
     private int vcCommit;
+    // Recovery
+    private int nonce;
+    private Semaphore recoveryLock;
+    private Set<Integer> recoverySet;
+    private int recoveryCommit;
     // Storage
     private KeyValueStore storage;
     // Timer
@@ -164,6 +169,25 @@ public class DStoreInternalImpl implements DStoreInternal {
             storage.apply(log.get(i));
         }
         this.commit = commit;
+    }
+
+    public void startRecovery() {
+        log("startRecovery()");
+        int nonce = (int) (Math.random() * 1e5);
+        status = Status.RECOVERING;
+        for (int i = 0; i < DStoreSetting.SERVER.size(); ++i) {
+            if (i == replicaNumber) continue;
+            RpcClient.internalStub(i).recovery(replicaNumber, nonce);
+        }
+        recoveryLock = new Semaphore(-DStoreSetting.getF());
+        recoverySet = new HashSet<>();
+    }
+
+    public void doRecovery() {
+        log("doRecovery()");
+        recoveryLock.acquireUninterruptibly();
+        doCommit(recoveryCommit);
+        status = Status.NORMAL;
     }
 
     @Override
@@ -299,11 +323,38 @@ public class DStoreInternalImpl implements DStoreInternal {
 
     @Override
     public void recovery(int replica, int nonce) {
-
+        log("recovery(r: " + replica + ", n: " + nonce + ")");
+        // Status must be normal
+        if (status != Status.NORMAL) return;
+        // Reply
+        if (isPrimary()) {
+            RpcClient.internalStub(replica).
+                    recoveryResponse(view, nonce, log, op, commit, replicaNumber);
+        } else {
+            RpcClient.internalStub(replica).
+                    recoveryResponse(view, nonce, null, -1, -1, replicaNumber);
+        }
     }
 
     @Override
-    public void recoveryResponse(int view, int nonce, int[] log, int op, int commit, int replica) {
-
+    public void recoveryResponse(int view, int nonce, List<StoreAction> log,
+                                 int op, int commit, int replica) {
+        log("recoveryResponse(v: " + view + " ,n: " + nonce + ", log, op: " + op + ", ci: " + commit + ", r: " + replica + ")");
+        // Check nonce
+        if (this.nonce != nonce) return;
+        int primary = view % DStoreSetting.SERVER.size();
+        // Cache primary
+        // TODO: check latest view?
+        if (primary == replica) {
+            this.view = view;
+            this.log = log;
+            this.op = op;
+            this.recoveryCommit = commit;
+        }
+        recoverySet.add(replica);
+        // Must have f + 1 response and response from primary
+        if (recoveryLock.availablePermits() < 0 || recoverySet.contains(primary)) {
+            recoveryLock.release();
+        }
     }
 }

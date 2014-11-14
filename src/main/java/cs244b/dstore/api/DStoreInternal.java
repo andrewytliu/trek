@@ -16,5 +16,5 @@ public interface DStoreInternal {
 
     public void recovery(int replica, int nonce);
     public void recoveryResponse
-            (int view, int nonce, int[] log, int op, int commit, int replica);
+            (int view, int nonce, List<StoreAction> log, int op, int commit, int replica);
 }
