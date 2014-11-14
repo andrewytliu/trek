@@ -14,8 +14,7 @@ public class KeyValueStore {
     }
 
     public StoreResponse apply(StoreAction action) {
-        // TODO: actually apply action, replying dummy object for now
-        return new StoreResponse(StoreResponse.Status.OK, "Done");
+        return action.apply(this);
     }
 
     public String create(String path, String data, boolean isSequential)
@@ -40,8 +39,7 @@ public class KeyValueStore {
         return path;
     }
 
-    public void delete(String path, int version)
-            throws NoNodeException, BadVersionException {
+    public void delete(String path, int version) throws NoNodeException, BadVersionException {
         path = normalizePath(path);
         Entry dataEntry = store.get(path);
         if (dataEntry == null) {
@@ -82,7 +80,7 @@ public class KeyValueStore {
         return new Entry(dataEntry);
     }
 
-    public List<String> getChildren(String path) throws NoNodeException {
+    public ArrayList<String> getChildren(String path) throws NoNodeException {
         path = normalizePath(path);
         Set<String> range;
         int offset;
