@@ -89,6 +89,7 @@ public class DStoreInternalImpl implements DStoreInternal {
                     if (i == replicaNumber) continue;
                     RpcClient.internalStub(i).commit(view, commit);
                 }
+                if (id != timerId.get()) return;
                 setPrimaryTimer();
             }
         };
@@ -112,6 +113,7 @@ public class DStoreInternalImpl implements DStoreInternal {
                 for (int i = 0; i < DStoreSetting.SERVER.size(); ++i) {
                     RpcClient.internalStub(i).startViewChange(view, replicaNumber);
                 }
+                if (id != timerId.get()) return;
                 setTimer();
             }
         };
