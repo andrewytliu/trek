@@ -210,7 +210,7 @@ public class DStoreInternalImpl implements DStoreInternal {
     @Override
     public void startViewChange(int view, int replica) {
         log("startViewChange(v: " + view + ", r: " + replica + ")");
-        if (this.view >= view) return;
+        if (this.view > view) return;
         // Change state
         status = Status.VIEWCHANGE;
         if (!viewSet.containsKey(view)) {
