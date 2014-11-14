@@ -122,8 +122,7 @@ public class DStoreInternalImpl implements DStoreInternal {
         log.add(action);
         op++;
         // Acquire all f semaphore
-        Semaphore semaphore = new Semaphore(DStoreSetting.getF());
-        semaphore.acquireUninterruptibly(DStoreSetting.getF());
+        Semaphore semaphore = new Semaphore(-DStoreSetting.getF() + 1);
         voteLock.put(op, semaphore);
         voteSet.put(op, new HashSet<Integer>());
         // Send prepare to all cohorts
