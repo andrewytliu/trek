@@ -9,6 +9,7 @@ import cs244b.dstore.storage.StoreResponse;
 
 import java.util.*;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -39,6 +40,7 @@ public class DStoreInternalImpl implements DStoreInternal {
     // Timer
     private Timer timer;
     private TimerTask task;
+    private AtomicInteger timerId;
     // Log
     private static final Logger logger = Logger.getLogger("cs244b.VR");
 
@@ -55,6 +57,7 @@ public class DStoreInternalImpl implements DStoreInternal {
         doViewSet = new HashMap<>();
         storage = new KeyValueStore();
         timer = new Timer();
+        timerId = new AtomicInteger();
 
         if (isPrimary()) {
             setPrimaryTimer();
@@ -76,9 +79,11 @@ public class DStoreInternalImpl implements DStoreInternal {
     }
 
     private void setPrimaryTimer() {
+        final int id = timerId.incrementAndGet();
         task = new TimerTask() {
             @Override
             public void run() {
+                if (id != timerId.get()) return;
                 log("Primary Timer Ticked");
                 for (int i = 0; i < DStoreSetting.SERVER.size(); ++i) {
                     if (i == replicaNumber) continue;
@@ -96,9 +101,11 @@ public class DStoreInternalImpl implements DStoreInternal {
     }
 
     private void setTimer() {
+        final int id = timerId.incrementAndGet();
         task = new TimerTask() {
             @Override
             public void run() {
+                if (id != timerId.get()) return;
                 log("Normal Timer Ticked");
                 status = Status.VIEWCHANGE;
                 view++;
