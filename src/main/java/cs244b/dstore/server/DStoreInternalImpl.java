@@ -181,7 +181,7 @@ public class DStoreInternalImpl implements DStoreInternal {
         if (task != null) task.cancel();
         timerId.incrementAndGet();
         // Setup
-        int nonce = (int) (Math.random() * 1e5);
+        nonce = (int) (Math.random() * 1e5);
         status = Status.RECOVERING;
         for (int i = 0; i < DStoreSetting.SERVER.size(); ++i) {
             if (i == replicaNumber) continue;

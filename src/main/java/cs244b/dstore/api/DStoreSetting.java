@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DStoreSetting {
+    public static int RECOVERY_DELAY = 3 * 1000;
+
     public static int HEARTBEAT_SOFT = 5 * 1000;
     public static int HEARTBEAT_HARD = 6 * 1000;
     public static int PORT = 3234;
