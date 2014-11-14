@@ -1,8 +1,11 @@
 package cs244b.dstore.storage;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import java.io.IOException;
 import java.io.Serializable;
 
-public class StoreResponse implements Serializable {
+public class StoreResponse extends JsonSerializable implements Serializable {
     private static final long serialVersionUID = 1L;
 
     public enum Status {
@@ -13,20 +16,27 @@ public class StoreResponse implements Serializable {
         INVALID_PATH,
     }
 
+    private Status status;
+    private Serializable value;
+
+    @JsonIgnore
     public Status getStatus() {
         return status;
     }
 
-    private Status status;
-
+    @JsonIgnore
     public Serializable getValue() {
         return value;
     }
 
-    private Serializable value;
-
     public StoreResponse(Status s, Serializable v) {
         status = s;
         value = v;
+    }
+
+    public void setPresentation(String p) throws IOException, ClassNotFoundException {
+        StoreResponse resp = (StoreResponse) parsePresentation(p);
+        this.status = resp.status;
+        this.value = resp.value;
     }
 }
