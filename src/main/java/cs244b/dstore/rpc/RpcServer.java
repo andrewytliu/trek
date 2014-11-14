@@ -33,6 +33,7 @@ public class RpcServer extends HttpServlet {
 
         public void init(ServletConfig config) {
             this.jsonRpcServer = new JsonRpcServer(this.serviceStub, serviceStub.getClass());
+            this.jsonRpcServer.setRethrowExceptions(true);
         }
     }
 
