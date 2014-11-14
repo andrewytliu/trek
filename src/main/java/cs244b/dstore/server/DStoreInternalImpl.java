@@ -84,6 +84,7 @@ public class DStoreInternalImpl implements DStoreInternal {
                     if (i == replicaNumber) continue;
                     RpcClient.internalStub(i).commit(view, commit);
                 }
+                setPrimaryTimer();
             }
         };
         timer.schedule(task, DStoreSetting.HEARTBEAT_SOFT);
@@ -104,6 +105,7 @@ public class DStoreInternalImpl implements DStoreInternal {
                 for (int i = 0; i < DStoreSetting.SERVER.size(); ++i) {
                     RpcClient.internalStub(i).startViewChange(view, replicaNumber);
                 }
+                setTimer();
             }
         };
         timer.schedule(task, DStoreSetting.HEARTBEAT_HARD);
