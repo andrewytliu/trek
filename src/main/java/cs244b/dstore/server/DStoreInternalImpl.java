@@ -221,7 +221,7 @@ public class DStoreInternalImpl implements DStoreInternal {
         clearTimer();
         // Receiving f vote: reply
         if (viewSet.get(view).size() == DStoreSetting.getF()) {
-            RpcClient.internalStub(getPrimary()).
+            RpcClient.internalStub(view % DStoreSetting.SERVER.size()).
                     doViewChange(view, log, this.view, op, commit, replicaNumber);
         }
     }
