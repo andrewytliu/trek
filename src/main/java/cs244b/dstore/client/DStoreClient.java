@@ -16,10 +16,12 @@ public class DStoreClient {
     private int primary;
     private int client;
     private int request;
+    private HashMap<String, Integer> versions;
 
     public DStoreClient() {
         primary = 0;
         request = 0;
+        versions = new HashMap<String, Integer>();
         switchPrimary();
     }
 
@@ -37,7 +39,7 @@ public class DStoreClient {
         }
     }
 
-    public StoreResponse request(StoreAction action) {
+    private StoreResponse request(StoreAction action) {
         StoreResponse resp;
         while (true) {
             try {
@@ -52,6 +54,25 @@ public class DStoreClient {
         return resp;
     }
 
+    private int getVersion(String path) {
+        Integer v = versions.get(path);
+        return (v == null) ? -1 : v;
+    }
+
+    private void setVersion(String path, int version) {
+        versions.put(path, version);
+    }
+
+    private static boolean parseBool(String arg) throws InvalidInputException {
+        if (arg.equalsIgnoreCase("true")) {
+            return true;
+        }
+        if (arg.equalsIgnoreCase("false")) {
+            return false;
+        }
+        throw new InvalidInputException();
+    }
+
     public static void main(String[] args) throws IOException {
         if (args.length != 1) {
             System.err.println("[USAGE] server1|server2|...");
@@ -59,7 +80,6 @@ public class DStoreClient {
         DStoreSetting.setServer(args[0]);
 
         DStoreClient client = new DStoreClient();
-        HashMap<String, Integer> versions = new HashMap<String, Integer>();
 
         ConsoleReader reader = new ConsoleReader();
         reader.setPrompt("> ");
@@ -68,7 +88,7 @@ public class DStoreClient {
         while ((line = reader.readLine()) != null) {
             String[] input = line.split(" ");
             if (input.length < 2) {
-                System.out.println("Insufficient arguments");
+                System.err.println("[USAGE] command path [additional arguments]");
                 continue;
             }
             String command = input[0];
@@ -76,44 +96,88 @@ public class DStoreClient {
             StoreAction act = null;
 
             if (command.equalsIgnoreCase("create")) {
-                if (input.length < 3 || input.length > 4) {
-                    System.out.println("[USAGE] create path data [isSequential=false]");
+                try {
+                    if (input.length < 3 || input.length > 4) {
+                        throw new InvalidInputException();
+                    }
+                    String data = input[2];
+                    boolean isSequential = (input.length == 4) && parseBool(input[3]);
+                    act = StoreAction.create(path, data, isSequential);
+                } catch (InvalidInputException e) {
+                    System.err.println("[USAGE] create path data [isSequential=false]");
                     continue;
                 }
-                String data = input[2];
-                boolean isSequential;
-                if (input.length == 3 || input[3].equalsIgnoreCase("false")) {
-                    isSequential = false;
-                } else if (input.length == 4 && input[3].equalsIgnoreCase("true")) {
-                    isSequential = true;
-                } else {
-                    System.out.println("[USAGE] create path data [isSequential=false]");
-                    continue;
-                }
-                act = StoreAction.create(path, data, isSequential);
             } else if (command.equalsIgnoreCase("delete")) {
-
+                try {
+                    if (input.length > 3) {
+                        throw new InvalidInputException();
+                    }
+                    boolean ignoreVersion = (input.length == 3) && parseBool(input[2]);
+                    int version = (ignoreVersion) ? -1 : client.getVersion(path);
+                    act = StoreAction.delete(path, version);
+                } catch (InvalidInputException e) {
+                    System.err.println("[USAGE] delete path [ignoreVersion=false]");
+                    continue;
+                }
             } else if (command.equalsIgnoreCase("exists")) {
-
+                try {
+                    if (input.length > 2) {
+                        throw new InvalidInputException();
+                    }
+                    act = StoreAction.exists(path);
+                } catch (InvalidInputException e) {
+                    System.err.println("[USAGE] exists path");
+                    continue;
+                }
             } else if (command.equalsIgnoreCase("getData")) {
-
+                try {
+                    if (input.length > 2) {
+                        throw new InvalidInputException();
+                    }
+                    act = StoreAction.getData(path);
+                } catch (InvalidInputException e) {
+                    System.err.println("[USAGE] getData path");
+                    continue;
+                }
             } else if (command.equalsIgnoreCase("setData")) {
-
+                try {
+                    if (input.length < 3 || input.length > 4) {
+                        throw new InvalidInputException();
+                    }
+                    String data = input[2];
+                    boolean ignoreVersion = (input.length == 4) && parseBool(input[3]);
+                    int version = (ignoreVersion) ? -1 : client.getVersion(path);
+                    act = StoreAction.setData(path, data, version);
+                } catch (InvalidInputException e) {
+                    System.err.println("[USAGE] setData path data [ignoreVersion=false]");
+                    continue;
+                }
             } else if (command.equalsIgnoreCase("getChildren")) {
-
+                try {
+                    if (input.length > 2) {
+                        throw new InvalidInputException();
+                    }
+                    act = StoreAction.getChildren(path);
+                } catch (InvalidInputException e) {
+                    System.err.println("[USAGE] getChildren path");
+                    continue;
+                }
             } else {
-                System.out.println("Unrecognized command");
+                System.err.println("Unrecognized command");
                 continue;
             }
 
             StoreResponse resp = client.request(act);
 
             if (resp.getStatus() != StoreResponse.Status.OK) {
-                System.out.println("Request failed with status " + resp.getStatus().toString());
+                System.err.println("Request failed with status " + resp.getStatus().toString());
             } else {
                 //TODO: Customize based on command
                 System.out.println("Response: " + resp.getValue());
             }
         }
+    }
+
+    private static class InvalidInputException extends Exception {
     }
 }
