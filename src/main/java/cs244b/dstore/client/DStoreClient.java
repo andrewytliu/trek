@@ -2,12 +2,14 @@ package cs244b.dstore.client;
 
 import cs244b.dstore.api.DStoreSetting;
 import cs244b.dstore.rpc.RpcClient;
+import cs244b.dstore.storage.Entry;
 import cs244b.dstore.storage.StoreAction;
 import cs244b.dstore.storage.StoreResponse;
 import jline.console.ConsoleReader;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.logging.Logger;
 
 public class DStoreClient {
@@ -172,8 +174,28 @@ public class DStoreClient {
             if (resp.getStatus() != StoreResponse.Status.OK) {
                 System.err.println("Request failed with status " + resp.getStatus().toString());
             } else {
-                //TODO: Customize based on command
-                System.out.println("Response: " + resp.getValue());
+                if (command.equalsIgnoreCase("create")) {
+                    String createdPath = (String)resp.getValue();
+                    System.out.println("Created node at " + createdPath);
+                    client.setVersion(createdPath, 0);
+                } else if (command.equalsIgnoreCase("delete")) {
+                    System.out.println("OK");
+                } else if (command.equalsIgnoreCase("exists")) {
+                    System.out.println((String)resp.getValue());
+                } else if (command.equalsIgnoreCase("getData")) {
+                    Entry dataEntry = (Entry)resp.getValue();
+                    System.out.println(dataEntry.value);
+                    client.setVersion(path, dataEntry.version);
+                } else if (command.equalsIgnoreCase("setData")) {
+                    System.out.println("OK");
+                    Entry dataEntry = (Entry)resp.getValue();
+                    client.setVersion(path, dataEntry.version);
+                } else { //getChildren
+                    List<String> children = (List<String>)resp.getValue();
+                    for (String c : children) {
+                        System.out.println(c);
+                    }
+                }
             }
         }
     }
