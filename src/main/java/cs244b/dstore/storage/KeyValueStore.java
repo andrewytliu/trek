@@ -1,5 +1,7 @@
 package cs244b.dstore.storage;
 
+import cs244b.dstore.api.PathUtils;
+
 import java.io.*;
 import java.lang.Exception;
 import java.util.*;
@@ -19,7 +21,7 @@ public class KeyValueStore {
 
     public String create(String path, String data, boolean isSequential)
             throws NodeExistsException, NoNodeException {
-        path = normalizePath(path);
+        path = PathUtils.normalizePath(path);
         if (path.equals("/") || path.lastIndexOf(':') > path.lastIndexOf('/')) {
             throw new IllegalArgumentException();
         }
@@ -40,7 +42,7 @@ public class KeyValueStore {
     }
 
     public void delete(String path, int version) throws NoNodeException, BadVersionException {
-        path = normalizePath(path);
+        path = PathUtils.normalizePath(path);
         Entry dataEntry = store.get(path);
         if (dataEntry == null) {
             throw new NoNodeException();
@@ -52,12 +54,12 @@ public class KeyValueStore {
     }
 
     public boolean exists(String path) {
-        path = normalizePath(path);
+        path = PathUtils.normalizePath(path);
         return store.containsKey(path);
     }
 
     public Entry getData(String path) throws NoNodeException {
-        path = normalizePath(path);
+        path = PathUtils.normalizePath(path);
         Entry dataEntry = store.get(path);
         if (dataEntry == null) {
             throw new NoNodeException();
@@ -67,7 +69,7 @@ public class KeyValueStore {
 
     public Entry setData(String path, String data, int version)
             throws NoNodeException, BadVersionException {
-        path = normalizePath(path);
+        path = PathUtils.normalizePath(path);
         Entry dataEntry = store.get(path);
         if (dataEntry == null) {
             throw new NoNodeException();
@@ -81,7 +83,7 @@ public class KeyValueStore {
     }
 
     public ArrayList<String> getChildren(String path) throws NoNodeException {
-        path = normalizePath(path);
+        path = PathUtils.normalizePath(path);
         Set<String> range;
         int offset;
         if (path.equals("/")) {
@@ -143,26 +145,6 @@ public class KeyValueStore {
     }
 
     public static class BadVersionException extends Exception {
-    }
-
-    private static String normalizePath(String path) {
-        if (path == null || !path.matches("^/[a-zA-Z0-9:_/]*")) {
-            throw new IllegalArgumentException();
-        }
-        StringBuilder sb = new StringBuilder("/");
-        char last = '/';
-        for (int i = 1; i < path.length(); i++) {
-            char cur = path.charAt(i);
-            if (last == '/' && cur == '/') {
-                continue;
-            }
-            sb.append(cur);
-            last = cur;
-        }
-        if (sb.length() > 1 && sb.charAt(sb.length()-1) == '/') { // not "/"
-            sb.deleteCharAt(sb.length()-1);
-        }
-        return sb.toString();
     }
 
     private int getNextSeqValue(String path) {
