@@ -7,6 +7,7 @@ import com.googlecode.jsonrpc4j.ReflectionUtil;
 import cs244b.dstore.api.DStoreService;
 import cs244b.dstore.api.DStoreInternal;
 import cs244b.dstore.api.DStoreSetting;
+import cs244b.dstore.api.DStoreTesting;
 import cs244b.dstore.storage.StoreAction;
 
 import java.lang.reflect.InvocationHandler;
@@ -118,5 +119,12 @@ public class RpcClient {
         } else {
             return internal;
         }
+    }
+
+    public static DStoreTesting testingStub(int sid) {
+        return ProxyUtil.createClientProxy(
+                RpcClient.class.getClassLoader(),
+                DStoreTesting.class,
+                getClient(sid, "testing.json"));
     }
 }
