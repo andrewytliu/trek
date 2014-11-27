@@ -19,6 +19,16 @@ import java.util.HashMap;
 import java.util.List;
 
 public class RpcClient {
+    private static List<Boolean> partitioned;
+
+    public synchronized static void setPartitioned(List<Boolean> values) {
+        partitioned = values;
+    }
+
+    private synchronized static boolean isPartitioned(int sid) {
+        return partitioned.get(sid);
+    }
+
     private static JsonRpcHttpClient getClient(int sid, String path) {
         try {
             return new JsonRpcHttpClient(
@@ -63,6 +73,7 @@ public class RpcClient {
     }
 
     public static DStoreService serviceStub(int sid) {
+        //TODO: Return no-op stub if paritioned
         return ProxyUtil.createClientProxy(
                 RpcClient.class.getClassLoader(),
                 DStoreService.class,
@@ -70,7 +81,8 @@ public class RpcClient {
     }
 
     public static DStoreInternal internalStub(int sid) {
-       DStoreInternal internal = createClientProxy(
+        //TODO: Return no-op stub if paritioned
+        DStoreInternal internal = createClientProxy(
                 RpcClient.class.getClassLoader(),
                 DStoreInternal.class,
                 getClient(sid, "internal.json"));

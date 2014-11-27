@@ -19,6 +19,8 @@ public class Monitor {
         String line;
 
         while ((line = reader.readLine()) != null) {
+            //TODO: Modify to fit new implementation of partition testing
+
             String[] input = line.split(" ");
             if (input.length < 2) {
                 System.err.println("[USAGE] command server_id");
@@ -39,9 +41,9 @@ public class Monitor {
             }
 
             if (command.equalsIgnoreCase("partition")) {
-                RpcClient.testingStub(sid).setIsPartitioned(true);
+                //RpcClient.testingStub(sid).setIsPartitioned(true);
             } else if (command.equalsIgnoreCase("revive")) {
-                RpcClient.testingStub(sid).setIsPartitioned(false);
+                //RpcClient.testingStub(sid).setIsPartitioned(false);
             } else {
                 System.err.println("Unrecognized commands");
             }
