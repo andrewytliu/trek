@@ -9,6 +9,7 @@ public class DStoreServer extends RpcServer {
     private DStoreTestingImpl testing;
 
     public void setup(int number) {
+        testing = new DStoreTestingImpl();
         internal = new DStoreInternalImpl(number);
         service = new DStoreServiceImpl(internal);
 
