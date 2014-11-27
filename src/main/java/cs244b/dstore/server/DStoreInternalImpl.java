@@ -18,6 +18,7 @@ public class DStoreInternalImpl implements DStoreInternal {
         NORMAL, VIEWCHANGE, RECOVERING
     }
 
+    private DStoreTestingImpl testing;
     // Normal property
     private int replicaNumber;
     private int view;
@@ -49,7 +50,8 @@ public class DStoreInternalImpl implements DStoreInternal {
     // Log
     private static final Logger logger = Logger.getLogger("cs244b.VR");
 
-    public DStoreInternalImpl(int number) {
+    public DStoreInternalImpl(int number, DStoreTestingImpl test) {
+        testing = test;
         replicaNumber = number;
         view = 0;
         status = Status.NORMAL;
@@ -201,6 +203,10 @@ public class DStoreInternalImpl implements DStoreInternal {
 
     @Override
     public void prepare(int view, StoreAction action, int op, int commit) {
+        if (testing.getIsPartitioned()) {
+            return;
+        }
+
         log("prepare(v: " + view + ", m, op: " + op + ", ci: " + commit + ")");
         // State need to be NORMAL
         if (status != Status.NORMAL) return;
@@ -222,6 +228,10 @@ public class DStoreInternalImpl implements DStoreInternal {
 
     @Override
     public void prepareOk(int view, int op, int replica) {
+        if (testing.getIsPartitioned()) {
+            return;
+        }
+
         log("prepareOk(v: " + view + ", op: " + op + ", r: " + replica + ")");
         // State need to be NORMAL
         if (status != Status.NORMAL) return;
@@ -238,6 +248,10 @@ public class DStoreInternalImpl implements DStoreInternal {
 
     @Override
     public void commit(int view, int commit) {
+        if (testing.getIsPartitioned()) {
+            return;
+        }
+
         log("commit(v: " + view + ", ci: " + commit + ")");
         // State need to be NORMAL
         if (status != Status.NORMAL) return;
@@ -251,6 +265,10 @@ public class DStoreInternalImpl implements DStoreInternal {
 
     @Override
     public void startViewChange(int view, int replica) {
+        if (testing.getIsPartitioned()) {
+            return;
+        }
+
         log("startViewChange(v: " + view + ", r: " + replica + ")");
         if (this.view > view) return;
         // Change state
@@ -271,6 +289,10 @@ public class DStoreInternalImpl implements DStoreInternal {
     @Override
     public void doViewChange(int view, List<StoreAction> log,
                              int oldView, int op, int commit, int replica) {
+        if (testing.getIsPartitioned()) {
+            return;
+        }
+
         log("doViewChange(v: " + view + ", log, ov: " + oldView + ", op: " + op + ", ci: " + commit + ", r: " + replica + ")");
         if (this.view > view) return;
         // Change state
@@ -313,6 +335,10 @@ public class DStoreInternalImpl implements DStoreInternal {
 
     @Override
     public void startView(int view, List<StoreAction> log, int op, int commit) {
+        if (testing.getIsPartitioned()) {
+            return;
+        }
+
         log("startView(v: " + view + ", log, op: " + op + ", ci: " + commit + ")");
         if (this.view >= view) return;
 
@@ -332,6 +358,10 @@ public class DStoreInternalImpl implements DStoreInternal {
 
     @Override
     public void recovery(int replica, int nonce) {
+        if (testing.getIsPartitioned()) {
+            return;
+        }
+
         log("recovery(r: " + replica + ", n: " + nonce + ")");
         // Status must be normal
         if (status != Status.NORMAL) return;
@@ -348,6 +378,10 @@ public class DStoreInternalImpl implements DStoreInternal {
     @Override
     public void recoveryResponse(int view, int nonce, List<StoreAction> log,
                                  int op, int commit, int replica) {
+        if (testing.getIsPartitioned()) {
+            return;
+        }
+
         log("recoveryResponse(v: " + view + " ,n: " + nonce + ", log, op: " + op + ", ci: " + commit + ", r: " + replica + ")");
         // Check nonce
         if (this.nonce != nonce) return;
