@@ -10,8 +10,8 @@ public class DStoreServer extends RpcServer {
 
     public void setup(int number) {
         testing = new DStoreTestingImpl();
-        internal = new DStoreInternalImpl(number, testing);
-        service = new DStoreServiceImpl(internal, testing);
+        internal = new DStoreInternalImpl(number);
+        service = new DStoreServiceImpl(internal);
 
         addServlet(internal, "/internal.json");
         addServlet(service, "/service.json");

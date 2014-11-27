@@ -1,7 +1,6 @@
 package cs244b.dstore.server;
 
 import cs244b.dstore.api.DStoreService;
-import cs244b.dstore.api.DStoreTesting;
 import cs244b.dstore.storage.StoreAction;
 import cs244b.dstore.storage.StoreResponse;
 
@@ -10,14 +9,12 @@ import java.util.Map;
 
 public class DStoreServiceImpl implements DStoreService {
     private DStoreInternalImpl internal;
-    private DStoreTestingImpl testing;
     private int clientId = 0;
     private Map<Integer, Integer> actionMap;
     private Map<Integer, StoreResponse> responseMap;
 
-    public DStoreServiceImpl(DStoreInternalImpl impl, DStoreTestingImpl test) {
+    public DStoreServiceImpl(DStoreInternalImpl impl) {
         internal = impl;
-        testing = test;
         actionMap = new HashMap<>();
         responseMap = new HashMap<>();
     }
