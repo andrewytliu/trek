@@ -6,6 +6,7 @@ import cs244b.dstore.rpc.RpcServer;
 public class DStoreServer extends RpcServer {
     private DStoreInternalImpl internal;
     private DStoreServiceImpl service;
+    private DStoreTestingImpl testing;
 
     public void setup(int number) {
         internal = new DStoreInternalImpl(number);
@@ -13,6 +14,7 @@ public class DStoreServer extends RpcServer {
 
         addServlet(internal, "/internal.json");
         addServlet(service, "/service.json");
+        addServlet(testing, "/testing.json");
     }
 
     public void recovery() {
