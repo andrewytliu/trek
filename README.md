@@ -7,7 +7,10 @@
 
 ## Todo
 * Testing coordinator
-  * WIP: Implementing partitioning
+  * Partition testing implemented; not yet tested
+  * NOT DONE: Every server is always reachable from the client because there is currently
+    no way for the monitor to tell the client which servers are partitioned
+    * Need to implement the testing service in DStoreClient too
   * To do: Logging
 * Handle timeouts in client (see to do in DStoreClient)
 * VR: Take a look into concurrency issue
