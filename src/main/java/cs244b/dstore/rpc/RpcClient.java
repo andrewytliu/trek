@@ -9,6 +9,7 @@ import cs244b.dstore.api.DStoreInternal;
 import cs244b.dstore.api.DStoreSetting;
 import cs244b.dstore.api.DStoreTesting;
 import cs244b.dstore.storage.StoreAction;
+import cs244b.dstore.storage.StoreResponse;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -31,8 +32,7 @@ public class RpcClient {
 
     private static JsonRpcHttpClient getClient(int sid, String path) {
         try {
-            return new JsonRpcHttpClient(
-                    new URL(DStoreSetting.SERVER.get(sid) + path));
+            return new JsonRpcHttpClient(new URL(DStoreSetting.SERVER.get(sid) + path));
         } catch (MalformedURLException e) {
             e.printStackTrace();
             return null;
@@ -73,7 +73,9 @@ public class RpcClient {
     }
 
     public static DStoreService serviceStub(int sid) {
-        //TODO: Return no-op stub if paritioned
+        if (isPartitioned(sid)) {
+            return new PartitionedServiceStub();
+        }
         return ProxyUtil.createClientProxy(
                 RpcClient.class.getClassLoader(),
                 DStoreService.class,
@@ -81,53 +83,15 @@ public class RpcClient {
     }
 
     public static DStoreInternal internalStub(int sid) {
-        //TODO: Return no-op stub if paritioned
+        if (isPartitioned(sid)) {
+            return new NoopInternalStub();
+        }
         DStoreInternal internal = createClientProxy(
                 RpcClient.class.getClassLoader(),
                 DStoreInternal.class,
                 getClient(sid, "internal.json"));
         if (internal == null) {
-            return new DStoreInternal() {
-                @Override
-                public void prepare(int view, StoreAction action, int op, int commit) {
-
-                }
-
-                @Override
-                public void prepareOk(int view, int op, int replica) {
-
-                }
-
-                @Override
-                public void commit(int view, int commit) {
-
-                }
-
-                @Override
-                public void startViewChange(int view, int replica) {
-
-                }
-
-                @Override
-                public void doViewChange(int view, List<StoreAction> log, int oldView, int op, int commit, int replica) {
-
-                }
-
-                @Override
-                public void startView(int view, List<StoreAction> log, int op, int commit) {
-
-                }
-
-                @Override
-                public void recovery(int replica, int nonce) {
-
-                }
-
-                @Override
-                public void recoveryResponse(int view, int nonce, List<StoreAction> log, int op, int commit, int replica) {
-
-                }
-            };
+            return new NoopInternalStub(); //TODO: Why is this needed?
         } else {
             return internal;
         }
@@ -138,5 +102,57 @@ public class RpcClient {
                 RpcClient.class.getClassLoader(),
                 DStoreTesting.class,
                 getClient(sid, "testing.json"));
+    }
+
+    private static class PartitionedServiceStub implements DStoreService {
+        @Override
+        public int id() throws ServiceTimeoutException {
+            throw new ServiceTimeoutException();
+        }
+
+        @Override
+        public int primary() throws ServiceTimeoutException {
+            throw new ServiceTimeoutException();
+        }
+
+        @Override
+        public StoreResponse request(StoreAction action, int client, int request)
+                throws ServiceTimeoutException {
+            throw new ServiceTimeoutException();
+        }
+    }
+
+    private static class NoopInternalStub implements DStoreInternal {
+        @Override
+        public void prepare(int view, StoreAction action, int op, int commit) {
+        }
+
+        @Override
+        public void prepareOk(int view, int op, int replica) {
+        }
+
+        @Override
+        public void commit(int view, int commit) {
+        }
+
+        @Override
+        public void startViewChange(int view, int replica) {
+        }
+
+        @Override
+        public void doViewChange(int view, List<StoreAction> log, int oldView, int op, int commit, int replica) {
+        }
+
+        @Override
+        public void startView(int view, List<StoreAction> log, int op, int commit) {
+        }
+
+        @Override
+        public void recovery(int replica, int nonce) {
+        }
+
+        @Override
+        public void recoveryResponse(int view, int nonce, List<StoreAction> log, int op, int commit, int replica) {
+        }
     }
 }

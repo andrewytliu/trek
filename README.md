@@ -7,7 +7,9 @@
 
 ## Todo
 * Testing coordinator
-* Make DStoreService async and handle timeouts in client (see below)
+  * WIP: Implementing partitioning
+  * To do: Logging
+* Handle timeouts in client (see to do in DStoreClient)
 * VR: Take a look into concurrency issue
 * VR: Efficient recovery
 * VR: State transfer
@@ -35,13 +37,9 @@ After each step, test to fail the nodes by 4 times (fail model * fail node)
 
 ## Implementation
 * Additional DStoreTesting interface that allows the monitor to set whether a server is
-  partitioned
-* Each method implementing DStoreInternal checks if partitioned and just return if true
-  * Why not just check in RpcServer and not call handle if partitioned
-    * What is the behaviour if we do this? (Actually time out? Return invalid result?)
-    * Monitor would never be able to set isPartitioned back to false
-* DStoreService should be made async so that we can do the same to simulate timeouts due to
-  partitioning (another interface?); right now we have to return a StoreResponse
+  partitioned from every other server
+* RpcClient checks if sid is partitioned from local server; if so, return no-op stub (internal)
+  or stub where each method call throws ServiceTimeoutException (service)
 * Testing crashes: Probably easier to just kill processes locally? It probably isn't impossible
   to implement a method that kills the server, but we'd still need to bring the server back up
   manually for recovery
