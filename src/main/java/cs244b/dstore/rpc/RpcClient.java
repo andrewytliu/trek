@@ -4,10 +4,7 @@ import com.googlecode.jsonrpc4j.JsonRpcHttpClient;
 import com.googlecode.jsonrpc4j.JsonRpcMethod;
 import com.googlecode.jsonrpc4j.ProxyUtil;
 import com.googlecode.jsonrpc4j.ReflectionUtil;
-import cs244b.dstore.api.DStoreService;
-import cs244b.dstore.api.DStoreInternal;
-import cs244b.dstore.api.DStoreSetting;
-import cs244b.dstore.api.DStoreTesting;
+import cs244b.dstore.api.*;
 import cs244b.dstore.storage.StoreAction;
 import cs244b.dstore.storage.StoreResponse;
 
@@ -31,8 +28,12 @@ public class RpcClient {
     }
 
     private static JsonRpcHttpClient getClient(int sid, String path) {
+        return getUrl(DStoreSetting.SERVER.get(sid), path);
+    }
+
+    private static JsonRpcHttpClient getUrl(String url, String path) {
         try {
-            return new JsonRpcHttpClient(new URL(DStoreSetting.SERVER.get(sid) + path));
+            return new JsonRpcHttpClient(new URL(url + path));
         } catch (MalformedURLException e) {
             e.printStackTrace();
             return null;
@@ -102,6 +103,13 @@ public class RpcClient {
                 RpcClient.class.getClassLoader(),
                 DStoreTesting.class,
                 getClient(sid, "testing.json"));
+    }
+
+    public static DStoreMonitor monitorStub() {
+        return ProxyUtil.createClientProxy(
+                RpcClient.class.getClassLoader(),
+                DStoreMonitor.class,
+                getUrl(DStoreSetting.MONITOR, "monitor.json"));
     }
 
     private static class PartitionedServiceStub implements DStoreService {

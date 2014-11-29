@@ -70,7 +70,12 @@ public class DStoreInternalImpl implements DStoreInternal {
     }
 
     private void log(String l) {
-        logger.log(Level.INFO, "R: " + replicaNumber + ", V: " + view + ", Op: " + op + ", Ci: " + commit + " => " + l);
+        String str = "R: " + replicaNumber + ", V: " + view + ", Op: " + op + ", Ci: " + commit + " => " + l;
+        if (DStoreSetting.MONITOR == null) {
+            logger.log(Level.INFO, str);
+        } else {
+            RpcClient.monitorStub().log(replicaNumber, str);
+        }
     }
 
     public int getPrimary() {
