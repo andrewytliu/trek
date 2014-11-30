@@ -28,7 +28,7 @@ public class DStoreServer extends RpcServer {
         removeServlet(DStoreInternal.class);
     }
 
-    public void recovery() {
+    public void recover() {
         if (internal == null) {
             internal = new DStoreInternalImpl(replicaNumber);
             addServlet(internal, "/internal.json");
@@ -46,6 +46,10 @@ public class DStoreServer extends RpcServer {
                 }
             }
         }).start();
+    }
+
+    public boolean isAlive() {
+        return internal != null;
     }
 
     private static class DStoreServerParameter {
@@ -72,7 +76,7 @@ public class DStoreServer extends RpcServer {
         DStoreServer server = new DStoreServer();
         server.setup(param.serverIndex);
         if (param.recovery) {
-            server.recovery();
+            server.recover();
         }
         server.start();
     }

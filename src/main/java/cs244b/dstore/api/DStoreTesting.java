@@ -8,5 +8,7 @@ public interface DStoreTesting {
     // Kill the requested node
     public void kill();
     // Recover the node
-    public void recovery();
+    public void recover();
+    // Check if the server is alive
+    public boolean isAlive();
 }

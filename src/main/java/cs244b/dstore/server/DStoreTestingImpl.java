@@ -25,7 +25,12 @@ public class DStoreTestingImpl implements DStoreTesting {
     }
 
     @Override
-    public void recovery() {
-        server.recovery();
+    public void recover() {
+        server.recover();
+    }
+
+    @Override
+    public boolean isAlive() {
+        return server.isAlive();
     }
 }
