@@ -1,5 +1,8 @@
 package cs244b.dstore.server;
 
+import com.beust.jcommander.JCommander;
+import com.beust.jcommander.Parameter;
+import cs244b.dstore.api.DStoreInternal;
 import cs244b.dstore.api.DStoreSetting;
 import cs244b.dstore.rpc.RpcServer;
 
@@ -7,10 +10,12 @@ public class DStoreServer extends RpcServer {
     private DStoreInternalImpl internal;
     private DStoreServiceImpl service;
     private DStoreTestingImpl testing;
+    private int replicaNumber;
 
     public void setup(int number) {
-        testing = new DStoreTestingImpl(DStoreSetting.SERVER.size());
-        internal = new DStoreInternalImpl(number);
+        replicaNumber = number;
+        testing = new DStoreTestingImpl(DStoreSetting.SERVER.size(), this);
+        internal = new DStoreInternalImpl(replicaNumber);
         service = new DStoreServiceImpl(internal);
 
         addServlet(internal, "/internal.json");
@@ -18,7 +23,16 @@ public class DStoreServer extends RpcServer {
         addServlet(testing, "/testing.json");
     }
 
+    public void kill() {
+        internal.kill();
+        removeServlet(DStoreInternal.class);
+    }
+
     public void recovery() {
+        if (internal == null) {
+            internal = new DStoreInternalImpl(replicaNumber);
+            addServlet(internal, "/internal.json");
+        }
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -34,15 +48,30 @@ public class DStoreServer extends RpcServer {
         }).start();
     }
 
+    private static class DStoreServerParameter {
+        @Parameter(names = "-server", description = "Server address", required = true)
+        private String serverList;
+        @Parameter(names = "-index", description = "Index of the server", required = true)
+        private Integer serverIndex;
+        @Parameter(names = "-recovery", description = "Recovery mode")
+        private boolean recovery = false;
+        @Parameter(names = "-monitor", description = "Monitor address")
+        private String monitor;
+        @Parameter(names = "-help", help = true)
+        private boolean help;
+    }
+
     public static void main(String[] args) {
-        // TODO: using argument parse lib
-        if (args.length < 2) {
-            System.err.println("[USAGE] server1|server2|... server_index [recovery]");
+        DStoreServerParameter param = new DStoreServerParameter();
+        new JCommander(param, args);
+
+        if (param.monitor != null) {
+            DStoreSetting.MONITOR = param.monitor;
         }
-        DStoreSetting.setServer(args[0]);
+        DStoreSetting.setServer(param.serverList);
         DStoreServer server = new DStoreServer();
-        server.setup(Integer.valueOf(args[1]));
-        if (args.length == 3) {
+        server.setup(param.serverIndex);
+        if (param.recovery) {
             server.recovery();
         }
         server.start();

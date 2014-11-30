@@ -78,6 +78,11 @@ public class DStoreInternalImpl implements DStoreInternal {
         }
     }
 
+    public void kill() {
+        clearTimer();
+        clearPrimaryTimer();
+    }
+
     public int getPrimary() {
         return view % DStoreSetting.SERVER.size();
     }
