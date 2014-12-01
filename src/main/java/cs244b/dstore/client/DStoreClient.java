@@ -81,10 +81,9 @@ public class DStoreClient {
             System.err.println("[USAGE] server1|server2|...");
         }
         DStoreSetting.setServer(args[0]);
-
-        DStoreClient client = new DStoreClient();
         RpcClient.setPartitioned(Collections.nCopies(DStoreSetting.SERVER.size(),
                 Boolean.FALSE));
+        DStoreClient client = new DStoreClient();
 
         ConsoleReader reader = new ConsoleReader();
         reader.setPrompt("> ");
