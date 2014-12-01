@@ -126,4 +126,15 @@ public class StoreAction extends JsonSerializable implements Serializable {
     public static StoreAction getChildren(String path) {
         return new StoreAction(Type.GET_CHILDREN, path, null, null);
     }
+
+    public String toString() {
+        String res = "Type: " + type + " Path: " + path;
+        if (arg1 != null) {
+            res += " arg1: " + arg1;
+        }
+        if (arg2 != null) {
+            res += " arg2: " + arg2;
+        }
+        return res;
+    }
 }

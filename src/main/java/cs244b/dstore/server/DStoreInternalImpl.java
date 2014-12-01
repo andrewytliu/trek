@@ -183,6 +183,7 @@ public class DStoreInternalImpl implements DStoreInternal {
     private void doCommit(int commit) {
         log("doCommit(" + commit + ")");
         for (int i = this.commit + 1; i < commit; ++i) {
+            logger.log(Level.INFO, log.get(i).toString());
             storage.apply(log.get(i));
         }
         this.commit = commit;
