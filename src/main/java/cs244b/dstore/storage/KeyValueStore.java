@@ -15,10 +15,6 @@ public class KeyValueStore {
         snapshotPath = System.getProperty("user.home") + "/.dstore/snapshot.ser";
     }
 
-    public int getHashcode() {
-        return store.hashCode();
-    }
-
     public StoreResponse apply(StoreAction action) {
         return action.apply(this);
     }

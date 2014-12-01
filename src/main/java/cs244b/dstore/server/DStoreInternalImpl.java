@@ -73,7 +73,6 @@ public class DStoreInternalImpl implements DStoreInternal {
         String str = "R: " + replicaNumber + ", V: " + view + ", Op: " + op + ", Ci: " + commit + " => " + l;
         if (DStoreSetting.MONITOR == null) {
             logger.log(Level.INFO, str);
-            logger.log(Level.INFO, "Store hash: " + storage.getHashcode());
         } else {
             RpcClient.monitorStub().log(replicaNumber, str);
         }
