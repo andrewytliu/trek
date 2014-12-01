@@ -23,6 +23,17 @@ public class Monitor {
         public void setup() {
             addServlet(new DStoreMonitorImpl(), "/monitor.json");
         }
+
+        @Override
+        public void start() {
+            Thread t = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    DStoreMonitorServer.super.start();
+                }
+            });
+            t.start();
+        }
     }
 
     private int numServers;
@@ -32,9 +43,9 @@ public class Monitor {
     public Monitor(int ns) {
         numServers = ns;
         partitioned = new boolean[numServers][numServers];
-        //server = new DStoreMonitorServer();
-        //server.setup();
-        //server.start();
+        server = new DStoreMonitorServer();
+        server.setup();
+        server.start();
     }
 
     // Make the servers in arg unreachable from the ones not in arg
