@@ -9,6 +9,7 @@ import jline.console.ConsoleReader;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class Monitor {
     private class DStoreMonitorImpl implements DStoreMonitor {
@@ -168,8 +169,10 @@ public class Monitor {
             System.out.println("[USAGE] server1|server2|...");
         }
         DStoreSetting.setServer(args[0]);
+        int numServers = DStoreSetting.SERVER.size();
 
-        Monitor m = new Monitor(DStoreSetting.SERVER.size());
+        Monitor m = new Monitor(numServers);
+        RpcClient.setPartitioned(Collections.nCopies(numServers, Boolean.FALSE));
 
         ConsoleReader reader = new ConsoleReader();
         reader.setPrompt("> ");

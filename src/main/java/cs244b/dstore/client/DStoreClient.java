@@ -8,6 +8,7 @@ import cs244b.dstore.storage.StoreResponse;
 import jline.console.ConsoleReader;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Logger;
@@ -82,6 +83,8 @@ public class DStoreClient {
         DStoreSetting.setServer(args[0]);
 
         DStoreClient client = new DStoreClient();
+        RpcClient.setPartitioned(Collections.nCopies(DStoreSetting.SERVER.size(),
+                Boolean.FALSE));
 
         ConsoleReader reader = new ConsoleReader();
         reader.setPrompt("> ");
