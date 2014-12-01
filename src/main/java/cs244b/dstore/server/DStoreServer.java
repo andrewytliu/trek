@@ -70,7 +70,7 @@ public class DStoreServer extends RpcServer {
         new JCommander(param, args);
 
         if (param.monitor != null) {
-            DStoreSetting.MONITOR = param.monitor;
+            DStoreSetting.setMonitor(param.monitor);
         }
         DStoreSetting.setServer(param.serverList);
         DStoreServer server = new DStoreServer();
