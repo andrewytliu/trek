@@ -46,7 +46,7 @@ public class DStoreClient {
         StoreResponse resp;
         while (true) {
             try {
-                resp = RpcClient.serviceStub(0).request(action, client, request);
+                resp = RpcClient.serviceStub(primary).request(action, client, request);
                 if (resp.getStatus() != StoreResponse.Status.NOT_PRIMARY) break;
             } catch (Throwable t) {
                 //TODO: Handle ServiceTimeoutException?
