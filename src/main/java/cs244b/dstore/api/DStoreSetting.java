@@ -13,7 +13,7 @@ public class DStoreSetting {
     public static String MONITOR = null;
 
     public static void setMonitor(String monitor) {
-        MONITOR = monitor;
+        MONITOR = "http://" + monitor + PORT + "/";
     }
 
     public static void setServer(String list) {
