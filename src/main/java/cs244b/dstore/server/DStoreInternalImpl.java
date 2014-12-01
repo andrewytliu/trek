@@ -74,7 +74,12 @@ public class DStoreInternalImpl implements DStoreInternal {
         if (DStoreSetting.MONITOR == null) {
             logger.log(Level.INFO, str);
         } else {
-            RpcClient.monitorStub().log(replicaNumber, str);
+            try {
+                RpcClient.monitorStub().log(replicaNumber, str);
+            } catch (Exception e) {
+                logger.log(Level.WARNING, "Could not log to monitor");
+                logger.log(Level.INFO, str);
+            }
         }
     }
 
