@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 public class Monitor {
-    private class DStoreMonitorImpl implements DStoreMonitor {
+    public class DStoreMonitorImpl implements DStoreMonitor {
         @Override
         public void log(int replicaNumber, String rpcLog) {
             System.out.println("[" + replicaNumber + "] " + rpcLog);
