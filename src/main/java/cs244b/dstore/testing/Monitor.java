@@ -32,9 +32,9 @@ public class Monitor {
     public Monitor(int ns) {
         numServers = ns;
         partitioned = new boolean[numServers][numServers];
-        server = new DStoreMonitorServer();
-        server.setup();
-        server.start();
+        //server = new DStoreMonitorServer();
+        //server.setup();
+        //server.start();
     }
 
     // Make the servers in arg unreachable from the ones not in arg
