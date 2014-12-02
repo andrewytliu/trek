@@ -88,7 +88,7 @@ public class Tester {
     // Kill the server
     // TODO: what if killed twice?
     private void kill(String server) throws InvalidInputException {
-        RpcClient.testingStub(getServer(server)).kill();
+        RpcClient.testingStub(getServer(server)).kill(0);
     }
 
     // Perform recovery
@@ -163,7 +163,7 @@ public class Tester {
 
     private void updateServers() {
         for (int i = 0; i < numServers; i++) {
-            RpcClient.testingStub(i).setPartitioned(getPartitioned(i));
+            RpcClient.testingStub(i).setPartitioned(getPartitioned(i), 0);
         }
     }
 

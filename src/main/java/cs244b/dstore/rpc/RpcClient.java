@@ -5,6 +5,7 @@ import com.googlecode.jsonrpc4j.JsonRpcMethod;
 import com.googlecode.jsonrpc4j.ProxyUtil;
 import com.googlecode.jsonrpc4j.ReflectionUtil;
 import cs244b.dstore.api.*;
+import cs244b.dstore.server.DStoreServer;
 import cs244b.dstore.storage.StoreAction;
 import cs244b.dstore.storage.StoreResponse;
 
@@ -14,17 +15,64 @@ import java.lang.reflect.Proxy;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 public class RpcClient {
     private static List<Boolean> partitioned;
+
+    private static List<Integer> killList = new LinkedList<>();
+    private static Map<Integer, List<Boolean>> partitionList = new HashMap<>();
 
     public synchronized static void setPartitioned(List<Boolean> values) {
         partitioned = values;
     }
 
+    public synchronized static void setPartitioned(List<Boolean> values, int rpcCount) {
+        if (rpcCount == 0) {
+            setPartitioned(values);
+        } else {
+            partitionList.put(rpcCount, values);
+        }
+    }
+
     private synchronized static boolean isPartitioned(int sid) {
         return partitioned.get(sid);
+    }
+
+    public synchronized static void setKill(DStoreServer server, int rpcCount) {
+        if (rpcCount == 0) {
+            server.kill();
+        } else {
+            RpcClient.server = server;
+            killList.add(rpcCount);
+        }
+    }
+
+    // TODO: need to decouple server here
+    private static DStoreServer server;
+    private synchronized static void updateRpcCount() {
+        List<Integer> updatedKillList = new LinkedList<>();
+        for (int r : killList) {
+            if (r == 1) {
+                server.kill();
+            } else {
+                updatedKillList.add(--r);
+            }
+        }
+        killList = updatedKillList;
+
+        Map<Integer, List<Boolean>> updatedPartitionList = new HashMap<>();
+        for (int r : partitionList.keySet()) {
+            List<Boolean> old = partitionList.get(r);
+            if (r == 1) {
+                setPartitioned(old);
+            } else {
+                updatedPartitionList.put(--r, old);
+            }
+        }
+        partitionList = updatedPartitionList;
     }
 
     private static JsonRpcHttpClient getClient(int sid, String path) {
@@ -52,9 +100,6 @@ public class RpcClient {
                 new Class<?>[]{proxyInterface},
                 new InvocationHandler() {
                     public Object invoke(Object proxy, Method method, Object[] args) {
-//                        if (method.getDeclaringClass() == Object.class) {
-//                            return proxyObjectMethods(method, proxy, args);
-//                        }
                         try {
                             Object arguments = ReflectionUtil.parseArguments(method, args, false);
 
@@ -64,8 +109,10 @@ public class RpcClient {
                                 methodName = methodAnnotation.value();
                             }
 
-                            return client.invoke(
+                            Object returned = client.invoke(
                                     methodName, arguments, method.getGenericReturnType(), new HashMap<String, String>());
+                            updateRpcCount();
+                            return returned;
                         } catch (Throwable t) {
                             return null;
                         }
@@ -92,7 +139,7 @@ public class RpcClient {
                 DStoreInternal.class,
                 getClient(sid, "internal.json"));
         if (internal == null) {
-            return new NoopInternalStub(); //TODO: Why is this needed?
+            return new NoopInternalStub();
         } else {
             return internal;
         }
@@ -133,34 +180,42 @@ public class RpcClient {
     private static class NoopInternalStub implements DStoreInternal {
         @Override
         public void prepare(int view, StoreAction action, int op, int commit) {
+            updateRpcCount();
         }
 
         @Override
         public void prepareOk(int view, int op, int replica) {
+            updateRpcCount();
         }
 
         @Override
         public void commit(int view, int commit) {
+            updateRpcCount();
         }
 
         @Override
         public void startViewChange(int view, int replica) {
+            updateRpcCount();
         }
 
         @Override
         public void doViewChange(int view, List<StoreAction> log, int oldView, int op, int commit, int replica) {
+            updateRpcCount();
         }
 
         @Override
         public void startView(int view, List<StoreAction> log, int op, int commit) {
+            updateRpcCount();
         }
 
         @Override
         public void recovery(int replica, int nonce) {
+            updateRpcCount();
         }
 
         @Override
         public void recoveryResponse(int view, int nonce, List<StoreAction> log, int op, int commit, int replica) {
+            updateRpcCount();
         }
     }
 }

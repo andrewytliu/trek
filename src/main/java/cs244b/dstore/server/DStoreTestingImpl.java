@@ -16,8 +16,8 @@ public class DStoreTestingImpl implements DStoreTesting {
     }
 
     @Override
-    public void setPartitioned(List<Boolean> values) {
-        RpcClient.setPartitioned(values);
+    public void setPartitioned(List<Boolean> values, int rpcCount) {
+        RpcClient.setPartitioned(values, rpcCount);
     }
 
     @Override
@@ -26,8 +26,8 @@ public class DStoreTestingImpl implements DStoreTesting {
     }
 
     @Override
-    public void kill() {
-        server.kill();
+    public void kill(int rpcCount) {
+        RpcClient.setKill(server, rpcCount);
     }
 
     @Override
