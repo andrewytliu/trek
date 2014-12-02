@@ -1,10 +1,7 @@
 package cs244b.dstore.testing;
 
-import cs244b.dstore.api.DStoreMonitor;
 import cs244b.dstore.api.DStoreSetting;
 import cs244b.dstore.rpc.RpcClient;
-import cs244b.dstore.rpc.RpcServer;
-import cs244b.dstore.server.DStoreInternalImpl;
 import jline.console.ConsoleReader;
 
 import java.io.IOException;
@@ -12,40 +9,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 public class Monitor {
-    public class DStoreMonitorImpl implements DStoreMonitor {
-        @Override
-        public void log(int replicaNumber, String rpcLog) {
-            System.out.println("[" + replicaNumber + "] " + rpcLog);
-        }
-    }
-
-    private class DStoreMonitorServer extends RpcServer {
-        public void setup() {
-            addServlet(new DStoreMonitorImpl(), "/monitor.json");
-        }
-
-        @Override
-        public void start() {
-            Thread t = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    DStoreMonitorServer.super.start();
-                }
-            });
-            t.start();
-        }
-    }
-
     private int numServers;
     private boolean[][] partitioned;
-    private DStoreMonitorServer server;
 
     public Monitor(int ns) {
         numServers = ns;
         partitioned = new boolean[numServers][numServers];
-        server = new DStoreMonitorServer();
-        server.setup();
-        server.start();
     }
 
     // Make the servers in arg unreachable from the ones not in arg
