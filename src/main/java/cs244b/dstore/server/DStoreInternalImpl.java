@@ -84,8 +84,8 @@ public class DStoreInternalImpl implements DStoreInternal {
     }
 
     public void kill() {
-        clearTimer();
-        clearPrimaryTimer();
+        timerId.incrementAndGet();
+        task.cancel();
     }
 
     public int getPrimary() {
