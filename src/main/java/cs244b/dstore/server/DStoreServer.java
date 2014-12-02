@@ -5,6 +5,9 @@ import com.beust.jcommander.Parameter;
 import cs244b.dstore.api.DStoreInternal;
 import cs244b.dstore.api.DStoreSetting;
 import cs244b.dstore.rpc.RpcServer;
+import cs244b.dstore.storage.StoreAction;
+
+import java.util.List;
 
 public class DStoreServer extends RpcServer {
     private DStoreInternalImpl internal;
@@ -21,6 +24,10 @@ public class DStoreServer extends RpcServer {
         addServlet(internal, "/internal.json");
         addServlet(service, "/service.json");
         addServlet(testing, "/testing.json");
+    }
+
+    public List<StoreAction> comittedLog() {
+        return internal.comittedLog();
     }
 
     public void kill() {

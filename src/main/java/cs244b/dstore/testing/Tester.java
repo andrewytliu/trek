@@ -2,11 +2,14 @@ package cs244b.dstore.testing;
 
 import cs244b.dstore.api.DStoreSetting;
 import cs244b.dstore.rpc.RpcClient;
+import cs244b.dstore.storage.StoreAction;
 import jline.console.ConsoleReader;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 
 public class Tester {
     private int numServers;
@@ -60,6 +63,26 @@ public class Tester {
             }
         }
         updateServers();
+    }
+
+    // Check if logs are consistent
+    private boolean isLogConsistent() {
+        List<List<StoreAction>> logs = new LinkedList<>();
+        int minLength = Integer.MAX_VALUE;
+
+        for (int i = 0; i < numServers; ++i) {
+            List<StoreAction> log = RpcClient.testingStub(i).committedLog();
+            logs.add(log);
+            if (log.size() < minLength) minLength = log.size();
+        }
+
+        for (int i = 0; i < minLength; ++i) {
+            StoreAction first = logs.get(0).get(i);
+            for (int j = 1; j < numServers; ++j) {
+                if (!first.equals(logs.get(j).get(i))) return false;
+            }
+        }
+        return true;
     }
 
     // Kill the server
@@ -196,6 +219,8 @@ public class Tester {
                     }
                 } else if (command.equalsIgnoreCase("health")) {
                     t.printHealth();
+                } else if (command.equalsIgnoreCase("consistent")) {
+                    System.out.println(t.isLogConsistent());
                 } else {
                     System.err.println("Unrecognized command");
                 }

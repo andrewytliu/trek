@@ -88,6 +88,10 @@ public class DStoreInternalImpl implements DStoreInternal {
         task.cancel();
     }
 
+    public List<StoreAction> comittedLog() {
+        return log.subList(0, commit);
+    }
+
     public int getPrimary() {
         return view % DStoreSetting.SERVER.size();
     }
