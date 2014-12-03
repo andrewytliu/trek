@@ -7,6 +7,7 @@ import cs244b.dstore.api.DStoreSetting;
 import cs244b.dstore.rpc.RpcServer;
 import cs244b.dstore.storage.StoreAction;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class DStoreServer extends RpcServer {
@@ -27,7 +28,11 @@ public class DStoreServer extends RpcServer {
     }
 
     public List<StoreAction> committedLog() {
-        return internal.committedLog();
+        if (internal != null) {
+            return internal.committedLog();
+        } else {
+            return new ArrayList<StoreAction>();
+        }
     }
 
     public void kill() {
