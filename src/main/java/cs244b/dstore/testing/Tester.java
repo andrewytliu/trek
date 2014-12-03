@@ -38,6 +38,7 @@ public class Tester {
                 } else {
                     System.out.print("X ");
                 }
+                RpcClient.testingStub(j).recover();
             }
             System.out.println();
         }
