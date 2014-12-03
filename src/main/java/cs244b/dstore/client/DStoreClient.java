@@ -31,13 +31,16 @@ public class DStoreClient {
     private void switchPrimary() {
         while (true) {
             try {
-//                logger.info("Testing primary: " + primary);
                 primary = RpcClient.serviceStub(primary).primary();
-//                logger.info("Getting client id: " + client);
                 client = RpcClient.serviceStub(primary).id();
                 break;
             } catch (Throwable t) {
                 primary = ++primary % DStoreSetting.SERVER.size();
+                try {
+                    Thread.sleep(DStoreSetting.CLIENT_DELAY);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
@@ -47,10 +50,11 @@ public class DStoreClient {
         while (true) {
             try {
                 resp = RpcClient.serviceStub(primary).request(action, client, request);
+                if (resp == null) return null;
                 if (resp.getStatus() != StoreResponse.Status.NOT_PRIMARY) break;
-                Thread.sleep(DStoreSetting.CLIENT_DELAY);
             } catch (Throwable t) {
                 //TODO: Handle ServiceTimeoutException?
+                t.printStackTrace();
             }
             switchPrimary();
         }
