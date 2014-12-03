@@ -20,6 +20,29 @@ public class Tester {
         partitioned = new boolean[numServers][numServers];
     }
 
+    //
+    private void normalTesting(int failTimes) throws InterruptedException {
+        System.out.println("Fail test ...");
+        System.out.print("  ");
+        for (int j = 0; j < numServers; ++j) {
+            System.out.print(j + " ");
+        }
+        System.out.println();
+        for (int i = 0; i < failTimes; ++i) {
+            System.out.print(i + " ");
+            for (int j = 0; j < numServers; ++i) {
+                RpcClient.testingStub(j).kill(i);
+                Thread.sleep(DStoreSetting.HEARTBEAT_HARD * 2);
+                if (isLogConsistent()) {
+                    System.out.print("O ");
+                } else {
+                    System.out.print("X ");
+                }
+            }
+            System.out.println();
+        }
+    }
+
     // Make the servers in arg unreachable from the ones not in arg
     private void partition(String arg) throws InvalidInputException {
         ArrayList<Integer> servers = getServers(arg);
@@ -71,7 +94,12 @@ public class Tester {
         int minLength = Integer.MAX_VALUE;
 
         for (int i = 0; i < numServers; ++i) {
-            List<StoreAction> log = RpcClient.testingStub(i).committedLog();
+            List<StoreAction> log;
+            try {
+                log = RpcClient.testingStub(i).committedLog();
+            } catch (Exception e) {
+                continue;
+            }
             logs.add(log);
             if (log.size() < minLength) minLength = log.size();
         }
@@ -167,7 +195,7 @@ public class Tester {
         }
     }
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws Exception {
         if (args.length < 1) {
             System.out.println("[USAGE] server1|server2|...");
         }
@@ -221,6 +249,8 @@ public class Tester {
                     t.printHealth();
                 } else if (command.equalsIgnoreCase("consistent")) {
                     System.out.println(t.isLogConsistent());
+                } else if (command.equalsIgnoreCase("normal")) {
+                    t.normalTesting(10);
                 } else {
                     System.err.println("Unrecognized command");
                 }
