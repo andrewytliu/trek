@@ -29,6 +29,13 @@ public class StoreAction extends JsonSerializable implements Serializable {
 
     public StoreAction() {}
 
+    @Override
+    public boolean equals(Object other) {
+        if (other instanceof StoreAction) return false;
+        StoreAction act = (StoreAction) other;
+        return type.equals(act.type) && path.equals(act.path) && arg1.equals(act.arg1) && arg2.equals(act.arg2);
+    }
+
     public void setPresentation(String p)  throws IOException, ClassNotFoundException {
         StoreAction action = (StoreAction) parsePresentation(p);
         this.type = action.type;
