@@ -45,12 +45,15 @@ public class RpcServer extends HttpServlet {
 
     private Server server;
     private HandlerCollection collection;
+    private ContextHandlerCollection contextHandlers;
     private Map<String, ServletContextHandler> context;
 
     public RpcServer() {
         server = new Server(DStoreSetting.PORT);
         context = new HashMap<>();
         collection = new HandlerCollection(true);
+        contextHandlers = new ContextHandlerCollection();
+        collection.addHandler(contextHandlers);
         server.setHandler(collection);
     }
 
@@ -59,7 +62,8 @@ public class RpcServer extends HttpServlet {
                 new ServletContextHandler(ServletContextHandler.SESSIONS);
         handler.setContextPath(path);
         handler.addServlet(new ServletHolder(new RpcServlet<T>(serviceStub)), "*.json");
-        collection.addHandler(handler);
+        contextHandlers.addHandler(handler);
+        contextHandlers.mapContexts();
         context.put(path, handler);
     }
 
@@ -73,7 +77,7 @@ public class RpcServer extends HttpServlet {
         }
         handler.destroy();
         context.put(path, null);
-        collection.removeHandler(handler);
+        contextHandlers.removeHandler(handler);
     }
 
     public void start() {
