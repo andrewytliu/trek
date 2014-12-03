@@ -9,16 +9,14 @@ import javax.servlet.http.HttpServletResponse;
 import com.googlecode.jsonrpc4j.JsonRpcServer;
 import cs244b.dstore.api.DStoreSetting;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.servlet.ServletMapping;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class RpcServer extends HttpServlet {
 
@@ -45,45 +43,26 @@ public class RpcServer extends HttpServlet {
     }
 
     private Server server;
-    private ServletContextHandler context;
+    private ContextHandlerCollection collection;
+    private Map<Class, ServletContextHandler> context;
 
     public RpcServer() {
         server = new Server(DStoreSetting.PORT);
-        context = new ServletContextHandler(ServletContextHandler.SESSIONS);
-        context.setContextPath("/");
-        server.setHandler(context);
+        context = new HashMap<>();
+        collection = new ContextHandlerCollection();
+        server.setHandler(collection);
    }
 
     protected <T> void addServlet(T serviceStub, String path) {
-        context.addServlet(new ServletHolder(new RpcServlet<T>(serviceStub)), path);
+        ServletContextHandler handler =
+                new ServletContextHandler(ServletContextHandler.SESSIONS);
+        handler.addServlet(new ServletHolder(new RpcServlet<T>(serviceStub)), path);
+        collection.addHandler(handler);
+        context.put(serviceStub.getClass(), handler);
     }
 
     protected void removeServlet(Class klass) {
-        ServletHandler handler = context.getServletHandler();
-        Set<String> names = new HashSet<>();
-        List<ServletHolder> servlets = new ArrayList<>();
-        List<ServletMapping> mappings = new ArrayList<>();
-
-        for (ServletHolder holder : handler.getServlets()) {
-            try {
-                if (klass.isInstance(holder.getServlet())) {
-                    names.add(holder.getName());
-                } else {
-                    servlets.add(holder);
-                }
-            } catch (ServletException e) {
-                e.printStackTrace();
-            }
-        }
-
-        for (ServletMapping mapping : handler.getServletMappings()) {
-            if (!names.contains(mapping.getServletName())) {
-                mappings.add(mapping);
-            }
-        }
-
-        handler.setServletMappings(mappings.toArray(new ServletMapping[0]));
-        handler.setServlets(servlets.toArray(new ServletHolder[0]));
+        collection.removeHandler(context.get(klass));
     }
 
     public void start() {
