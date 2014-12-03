@@ -22,7 +22,7 @@ public class DStoreTestingImpl implements DStoreTesting {
 
     @Override
     public List<StoreAction> committedLog() {
-        return server.comittedLog();
+        return server.committedLog();
     }
 
     @Override

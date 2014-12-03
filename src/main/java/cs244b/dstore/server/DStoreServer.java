@@ -26,8 +26,8 @@ public class DStoreServer extends RpcServer {
         addServlet(testing, "/testing.json");
     }
 
-    public List<StoreAction> comittedLog() {
-        return internal.comittedLog();
+    public List<StoreAction> committedLog() {
+        return internal.committedLog();
     }
 
     public void kill() {

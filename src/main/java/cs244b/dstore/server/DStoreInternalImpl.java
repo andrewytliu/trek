@@ -86,10 +86,15 @@ public class DStoreInternalImpl implements DStoreInternal {
     public void kill() {
         timerId.incrementAndGet();
         task.cancel();
+        timer.cancel();
     }
 
-    public List<StoreAction> comittedLog() {
-        return log.subList(0, commit);
+    public List<StoreAction> committedLog() {
+        if (commit >= 0) {
+            return log.subList(0, commit);
+        } else {
+            return new ArrayList<>();
+        }
     }
 
     public int getPrimary() {
