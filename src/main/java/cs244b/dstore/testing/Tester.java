@@ -1,6 +1,7 @@
 package cs244b.dstore.testing;
 
 import cs244b.dstore.api.DStoreSetting;
+import cs244b.dstore.client.DStoreClient;
 import cs244b.dstore.rpc.RpcClient;
 import cs244b.dstore.storage.StoreAction;
 import jline.console.ConsoleReader;
@@ -28,10 +29,12 @@ public class Tester {
             System.out.print(j + " ");
         }
         System.out.println();
+        DStoreClient client = new DStoreClient();
         for (int i = 0; i < failTimes; ++i) {
             System.out.print(i + " ");
             for (int j = 0; j < numServers; ++i) {
                 RpcClient.testingStub(j).kill(i);
+                client.request(StoreAction.exists("/"));
                 Thread.sleep(DStoreSetting.HEARTBEAT_HARD * 2);
                 if (isLogConsistent()) {
                     System.out.print("O ");

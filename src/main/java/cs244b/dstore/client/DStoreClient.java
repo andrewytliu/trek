@@ -42,7 +42,7 @@ public class DStoreClient {
         }
     }
 
-    private StoreResponse request(StoreAction action) {
+    public StoreResponse request(StoreAction action) {
         StoreResponse resp;
         while (true) {
             try {
