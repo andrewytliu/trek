@@ -54,7 +54,7 @@ public class DStoreServiceImpl implements DStoreService {
 
     @Override
     public StoreResponse request(StoreAction action, int client, int request) {
-        log("request(action, " + client + ", " + request);
+        log("request(action, " + client + ", " + request + ")");
         // Check if it is primary
         if (!internal.isPrimary()) {
             return new StoreResponse(StoreResponse.Status.NOT_PRIMARY, internal.getPrimary());

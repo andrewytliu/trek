@@ -18,7 +18,7 @@ public class DStoreServer extends RpcServer {
 
     public void setup(int number) {
         replicaNumber = number;
-        testing = new DStoreTestingImpl(DStoreSetting.SERVER.size(), this);
+        testing = new DStoreTestingImpl(DStoreSetting.SERVER.size(), this, replicaNumber);
         internal = new DStoreInternalImpl(replicaNumber);
         service = new DStoreServiceImpl(internal);
 
