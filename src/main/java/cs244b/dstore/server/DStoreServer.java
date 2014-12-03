@@ -21,9 +21,9 @@ public class DStoreServer extends RpcServer {
         internal = new DStoreInternalImpl(replicaNumber);
         service = new DStoreServiceImpl(internal);
 
-        addServlet(internal, "/internal.json");
-        addServlet(service, "/service.json");
-        addServlet(testing, "/testing.json");
+        addServlet(internal, "/internal");
+        addServlet(service, "/service");
+        addServlet(testing, "/testing");
     }
 
     public List<StoreAction> committedLog() {
@@ -32,13 +32,14 @@ public class DStoreServer extends RpcServer {
 
     public void kill() {
         internal.kill();
-        removeServlet(DStoreInternal.class);
+        removeServlet("/internal");
+        internal = null;
     }
 
     public void recover() {
         if (internal == null) {
             internal = new DStoreInternalImpl(replicaNumber);
-            addServlet(internal, "/internal.json");
+            addServlet(internal, "/internal");
         }
         new Thread(new Runnable() {
             @Override

@@ -127,7 +127,7 @@ public class RpcClient {
         return ProxyUtil.createClientProxy(
                 RpcClient.class.getClassLoader(),
                 DStoreService.class,
-                getClient(sid, "service.json"));
+                getClient(sid, "service/req.json"));
     }
 
     public static DStoreInternal internalStub(int sid) {
@@ -137,7 +137,7 @@ public class RpcClient {
         DStoreInternal internal = createClientProxy(
                 RpcClient.class.getClassLoader(),
                 DStoreInternal.class,
-                getClient(sid, "internal.json"));
+                getClient(sid, "internal/req.json"));
         if (internal == null) {
             return new NoopInternalStub();
         } else {
@@ -149,14 +149,14 @@ public class RpcClient {
         return ProxyUtil.createClientProxy(
                 RpcClient.class.getClassLoader(),
                 DStoreTesting.class,
-                getClient(sid, "testing.json"));
+                getClient(sid, "testing/req.json"));
     }
 
     public static DStoreMonitor monitorStub() {
         return ProxyUtil.createClientProxy(
                 RpcClient.class.getClassLoader(),
                 DStoreMonitor.class,
-                getUrl(DStoreSetting.MONITOR, "monitor.json"));
+                getUrl(DStoreSetting.MONITOR, "monitor/req.json"));
     }
 
     private static class PartitionedServiceStub implements DStoreService {

@@ -13,7 +13,7 @@ public class Monitor {
 
     private class DStoreMonitorServer extends RpcServer {
         public void setup() {
-            addServlet(new DStoreMonitorImpl(), "/monitor.json");
+            addServlet(new DStoreMonitorImpl(), "/monitor");
         }
     }
 

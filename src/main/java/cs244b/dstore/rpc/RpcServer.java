@@ -44,25 +44,35 @@ public class RpcServer extends HttpServlet {
 
     private Server server;
     private ContextHandlerCollection collection;
-    private Map<Class, ServletContextHandler> context;
+    private Map<String, ServletContextHandler> context;
 
     public RpcServer() {
         server = new Server(DStoreSetting.PORT);
         context = new HashMap<>();
         collection = new ContextHandlerCollection();
         server.setHandler(collection);
-   }
+    }
 
     protected <T> void addServlet(T serviceStub, String path) {
         ServletContextHandler handler =
                 new ServletContextHandler(ServletContextHandler.SESSIONS);
-        handler.addServlet(new ServletHolder(new RpcServlet<T>(serviceStub)), path);
+        handler.setContextPath(path);
+        handler.addServlet(new ServletHolder(new RpcServlet<T>(serviceStub)), "*.json");
         collection.addHandler(handler);
-        context.put(serviceStub.getClass(), handler);
+        context.put(path, handler);
     }
 
-    protected void removeServlet(Class klass) {
-        collection.removeHandler(context.get(klass));
+    protected void removeServlet(String path) {
+        ServletContextHandler handler = context.get(path);
+        if (handler == null) return;
+        try {
+            handler.stop();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        handler.destroy();
+        context.put(path, null);
+        collection.removeHandler(handler);
     }
 
     public void start() {
