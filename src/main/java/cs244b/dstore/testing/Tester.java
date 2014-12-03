@@ -48,7 +48,7 @@ public class Tester {
     }
 
     // Make the servers in arg unreachable from the ones not in arg
-    private void partition(String arg) throws InvalidInputException {
+    private void partition(String arg, int rpcCount) throws InvalidInputException {
         ArrayList<Integer> servers = getServers(arg);
         for (int i = 0; i < numServers; i++) {
             for (int j = 0; j < numServers; j++) {
@@ -58,11 +58,11 @@ public class Tester {
                 }
             }
         }
-        updateServers();
+        updateServers(rpcCount);
     }
 
     // Make the servers in arg reachable from each other
-    private void group(String arg) throws InvalidInputException {
+    private void group(String arg, int rpcCount) throws InvalidInputException {
         ArrayList<Integer> servers = getServers(arg);
         for (int i = 0; i < numServers; i++) {
             for (int j = 0; j < numServers; j++) {
@@ -71,7 +71,7 @@ public class Tester {
                 }
             }
         }
-        updateServers();
+        updateServers(rpcCount);
     }
 
     // Make the servers in arg reachable from everyone
@@ -89,7 +89,13 @@ public class Tester {
                 }
             }
         }
-        updateServers();
+        updateServers(0);
+    }
+
+    private void updateServers(int rpcCount) {
+        for (int i = 0; i < numServers; i++) {
+            RpcClient.testingStub(i).setPartitioned(getPartitioned(i), rpcCount);
+        }
     }
 
     // Check if logs are consistent
@@ -119,8 +125,8 @@ public class Tester {
 
     // Kill the server
     // TODO: what if killed twice?
-    private void kill(String server) throws InvalidInputException {
-        RpcClient.testingStub(getServer(server)).kill(0);
+    private void kill(String server, int rpcCount) throws InvalidInputException {
+        RpcClient.testingStub(getServer(server)).kill(rpcCount);
     }
 
     // Perform recovery
@@ -167,7 +173,6 @@ public class Tester {
             }
             System.out.println();
         }
-        updateServers();
     }
 
     private ArrayList<Integer> getServers(String arg) throws InvalidInputException {
@@ -199,12 +204,6 @@ public class Tester {
         return res;
     }
 
-    private void updateServers() {
-        for (int i = 0; i < numServers; i++) {
-            RpcClient.testingStub(i).setPartitioned(getPartitioned(i), 0);
-        }
-    }
-
     public static void main(String[] args) throws Exception {
         if (args.length < 1) {
             System.out.println("[USAGE] server1|server2|...");
@@ -222,38 +221,45 @@ public class Tester {
         while ((line = reader.readLine()) != null) {
             String[] input = line.split(" ");
             String command = input[0];
-            String arg = (input.length > 1) ? input[1] : null;
+            String arg1 = (input.length > 1) ? input[1] : null;
+            String arg2 = (input.length > 2) ? input[2] : null;
 
             try {
                 if (command.equalsIgnoreCase("help")) {
                     // TODO
                 } else if (command.equalsIgnoreCase("partition")) {
-                    if (arg == null) {
-                        System.err.println("[USAGE] parition server1|...");
+                    if (arg1 == null) {
+                        System.err.println("[USAGE] parition server1|... [rpcCount]");
                     } else {
-                        t.partition(arg);
+                        int rpcCount = 0;
+                        if (arg2 != null) rpcCount = Integer.valueOf(arg2);
+                        t.partition(arg1, rpcCount);
                     }
                 } else if (command.equalsIgnoreCase("group")) {
-                    if (arg == null) {
-                        System.err.println("[USAGE] group server1|server2|...");
+                    if (arg1 == null) {
+                        System.err.println("[USAGE] group server1|server2|... [rpcCount]");
                     } else {
-                        t.group(arg);
+                        int rpcCount = 0;
+                        if (arg2 != null) rpcCount = Integer.valueOf(arg2);
+                        t.group(arg1, rpcCount);
                     }
                 } else if (command.equalsIgnoreCase("reset")) {
-                    t.reset(arg);
+                    t.reset(arg1);
                 } else if (command.equalsIgnoreCase("print")) {
                     t.printPartition();
                 } else if (command.equalsIgnoreCase("kill")) {
-                    if (arg == null) {
-                        System.err.println("[USAGE] kill server1");
+                    if (arg1 == null) {
+                        System.err.println("[USAGE] kill server1 [rpcCount]");
                     } else {
-                        t.kill(arg);
+                        int rpcCount = 0;
+                        if (arg2 != null) rpcCount = Integer.valueOf(arg2);
+                        t.kill(arg1, rpcCount);
                     }
                 } else if (command.equalsIgnoreCase("recover")) {
-                    if (arg == null) {
+                    if (arg1 == null) {
                         System.err.println("[USAGE] recover server1|server2|...");
                     } else {
-                        t.recover(arg);
+                        t.recover(arg1);
                     }
                 } else if (command.equalsIgnoreCase("health")) {
                     t.printHealth();
