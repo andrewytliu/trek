@@ -10,6 +10,7 @@ import com.googlecode.jsonrpc4j.JsonRpcServer;
 import cs244b.dstore.api.DStoreSetting;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
+import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -43,13 +44,13 @@ public class RpcServer extends HttpServlet {
     }
 
     private Server server;
-    private ContextHandlerCollection collection;
+    private HandlerCollection collection;
     private Map<String, ServletContextHandler> context;
 
     public RpcServer() {
         server = new Server(DStoreSetting.PORT);
         context = new HashMap<>();
-        collection = new ContextHandlerCollection();
+        collection = new HandlerCollection(true);
         server.setHandler(collection);
     }
 
