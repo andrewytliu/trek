@@ -131,7 +131,13 @@ public class Tester {
         }
         System.out.println();
         for (int i = 0; i < numServers; ++i) {
-            if (RpcClient.testingStub(i).isAlive()) {
+            boolean alive;
+            try {
+                alive = RpcClient.testingStub(i).isAlive();
+            } catch (Exception e) {
+                alive = false;
+            }
+            if (alive) {
                 System.out.print("O ");
             } else {
                 System.out.print("X ");
