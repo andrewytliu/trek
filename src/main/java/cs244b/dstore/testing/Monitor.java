@@ -4,7 +4,7 @@ import cs244b.dstore.api.DStoreMonitor;
 import cs244b.dstore.rpc.RpcServer;
 
 public class Monitor {
-    private class DStoreMonitorImpl implements DStoreMonitor {
+    public class DStoreMonitorImpl implements DStoreMonitor {
         @Override
         public void log(int replicaNumber, String rpcLog) {
             System.out.println("[" + replicaNumber + "] " + rpcLog);

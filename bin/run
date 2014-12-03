@@ -1,0 +1,21 @@
+#!/bin/bash
+SERVER_LIST='corn19|corn20|corn21'
+MONITOR='corn22'
+
+case $1 in
+compile)
+  mvn compile
+  ;;
+server)
+  mvn exec:java -Dexec.mainClass="cs244b.dstore.server.DStoreServer" -Dexec.args="-server $SERVER_LIST -monitor $MONITOR -index $2"
+  ;;
+client)
+  mvn exec:java -Dexec.mainClass="cs244b.dstore.client.DStoreClient" -Dexec.args="$SERVER_LIST"
+  ;;
+monitor)
+  mvn exec:java -Dexec.mainClass="cs244b.dstore.testing.Monitor"
+  ;;
+tester)
+  mvn exec:java -Dexec.mainClass="cs244b.dstore.testing.Tester" -Dexec.args="$SERVER_LIST"
+  ;;
+esac
