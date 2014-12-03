@@ -59,7 +59,7 @@ public class RpcServer extends HttpServlet {
 
     protected <T> void addServlet(T serviceStub, String path) {
         ServletContextHandler handler =
-                new ServletContextHandler(ServletContextHandler.SESSIONS);
+                new ServletContextHandler();
         handler.setContextPath(path);
         handler.addServlet(new ServletHolder(new RpcServlet<T>(serviceStub)), "*.json");
         contextHandlers.addHandler(handler);
