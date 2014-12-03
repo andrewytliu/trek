@@ -54,7 +54,6 @@ public class DStoreClient {
                 if (resp.getStatus() != StoreResponse.Status.NOT_PRIMARY) break;
             } catch (Throwable t) {
                 //TODO: Handle ServiceTimeoutException?
-                t.printStackTrace();
             }
             switchPrimary();
         }
