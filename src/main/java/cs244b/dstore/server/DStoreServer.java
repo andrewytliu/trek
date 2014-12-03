@@ -31,30 +31,35 @@ public class DStoreServer extends RpcServer {
         if (internal != null) {
             return internal.committedLog();
         } else {
-            return new ArrayList<StoreAction>();
+            return new ArrayList<>();
         }
     }
 
     public void kill() {
+        if (internal == null || service == null) return;
         internal.kill();
         removeServlet("/internal");
+        removeServlet("/service");
         internal = null;
+        service = null;
     }
 
     public void recover() {
         if (internal == null) {
             internal = new DStoreInternalImpl(replicaNumber);
+            service = new DStoreServiceImpl(internal);
             addServlet(internal, "/internal");
+            addServlet(service, "/service");
         }
         new Thread(new Runnable() {
             @Override
             public void run() {
+                internal.startRecovery();
                 try {
                     Thread.sleep(DStoreSetting.RECOVERY_DELAY);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 } finally {
-                    internal.startRecovery();
                     internal.doRecovery();
                 }
             }
