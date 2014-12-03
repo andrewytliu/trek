@@ -97,6 +97,10 @@ public class DStoreInternalImpl implements DStoreInternal {
         }
     }
 
+    public int getReplicaNumber() {
+        return replicaNumber;
+    }
+
     public int getPrimary() {
         return view % DStoreSetting.SERVER.size();
     }
