@@ -33,7 +33,12 @@ public class StoreAction extends JsonSerializable implements Serializable {
     public boolean equals(Object other) {
         if (!(other instanceof StoreAction)) return false;
         StoreAction act = (StoreAction) other;
-        return type.equals(act.type) && path.equals(act.path) && arg1.equals(act.arg1) && arg2.equals(act.arg2);
+        return equalHelper(type, act.type) && equalHelper(path, act.path)
+            && equalHelper(arg1, act.arg1) && equalHelper(arg2, act.arg2);
+    }
+
+    private <T> boolean equalHelper(T a, T b) {
+        return (a == null && b == null) || a.equals(b);
     }
 
     public void setPresentation(String p)  throws IOException, ClassNotFoundException {
