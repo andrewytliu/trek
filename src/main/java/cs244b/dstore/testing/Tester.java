@@ -29,13 +29,13 @@ public class Tester {
             System.out.print(j + " ");
         }
         System.out.println();
-        DStoreClient client = new DStoreClient();
         for (int i = 0; i < failTimes; ++i) {
             System.out.print(i + " ");
-            for (int j = 0; j < numServers; ++i) {
+            for (int j = 0; j < numServers; ++j) {
                 RpcClient.testingStub(j).kill(i);
-                client.request(StoreAction.exists("/"));
                 Thread.sleep(DStoreSetting.HEARTBEAT_HARD * 2);
+                DStoreClient client = new DStoreClient();
+                client.request(StoreAction.exists("/"));
                 if (isLogConsistent()) {
                     System.out.print("O ");
                 } else {
