@@ -91,7 +91,7 @@ public class DStoreInternalImpl implements DStoreInternal {
 
     public List<StoreAction> committedLog() {
         if (commit >= 0) {
-            return log.subList(0, commit);
+            return log.subList(0, commit + 1);
         } else {
             return new ArrayList<>();
         }

@@ -31,7 +31,7 @@ public class StoreAction extends JsonSerializable implements Serializable {
 
     @Override
     public boolean equals(Object other) {
-        if (other instanceof StoreAction) return false;
+        if (!(other instanceof StoreAction)) return false;
         StoreAction act = (StoreAction) other;
         return type.equals(act.type) && path.equals(act.path) && arg1.equals(act.arg1) && arg2.equals(act.arg2);
     }
