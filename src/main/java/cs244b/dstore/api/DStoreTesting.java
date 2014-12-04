@@ -5,7 +5,7 @@ import cs244b.dstore.storage.StoreAction;
 import java.util.List;
 
 public interface DStoreTesting {
-    // Creating network partition after n rpc outgoing call
+    // Set the network state at this node to values after rpcCount outgoing RPC requests
     public void setPartitioned(List<Boolean> values, int rpcCount);
     // Get committed log
     public List<StoreAction> committedLog();
