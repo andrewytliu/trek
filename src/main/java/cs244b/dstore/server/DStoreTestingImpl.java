@@ -42,9 +42,9 @@ public class DStoreTestingImpl implements DStoreTesting {
     }
 
     @Override
-    public List<StoreAction> committedLog() {
-        log("committedLog()");
-        return server.committedLog();
+    public List<StoreAction> getCommitLog() {
+        log("getCommitLog()");
+        return server.getCommitLog();
     }
 
     @Override

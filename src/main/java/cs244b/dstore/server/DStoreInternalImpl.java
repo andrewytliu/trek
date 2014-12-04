@@ -89,7 +89,7 @@ public class DStoreInternalImpl implements DStoreInternal {
         timer.cancel();
     }
 
-    public List<StoreAction> committedLog() {
+    public List<StoreAction> getCommitLog() {
         if (commit >= 0) {
             return log.subList(0, commit + 1);
         } else {

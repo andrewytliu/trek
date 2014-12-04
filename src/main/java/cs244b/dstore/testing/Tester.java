@@ -6,7 +6,6 @@ import cs244b.dstore.rpc.RpcClient;
 import cs244b.dstore.storage.StoreAction;
 import jline.console.ConsoleReader;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -106,7 +105,7 @@ public class Tester {
         for (int i = 0; i < numServers; ++i) {
             List<StoreAction> log;
             try {
-                log = RpcClient.testingStub(i).committedLog();
+                log = RpcClient.testingStub(i).getCommitLog();
             } catch (Exception e) {
                 continue;
             }

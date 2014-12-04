@@ -27,9 +27,9 @@ public class DStoreServer extends RpcServer {
         addServlet(testing, "/testing");
     }
 
-    public List<StoreAction> committedLog() {
+    public List<StoreAction> getCommitLog() {
         if (internal != null) {
-            return internal.committedLog();
+            return internal.getCommitLog();
         } else {
             return new ArrayList<>();
         }
