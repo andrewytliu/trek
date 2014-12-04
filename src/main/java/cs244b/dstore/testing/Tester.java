@@ -256,7 +256,7 @@ public class Tester {
                     }
                 } else if (command.equalsIgnoreCase("recover")) {
                     if (arg1 == null) {
-                        System.err.println("[USAGE] recover server1|server2|...");
+                        System.err.println("[USAGE] recover server1");
                     } else {
                         t.recover(arg1);
                     }
