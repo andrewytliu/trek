@@ -46,6 +46,33 @@ public class Tester {
         }
     }
 
+    private ArrayList<ArrayList<Boolean>> getPossiblePartitions() {
+        ArrayList<ArrayList<Boolean>> res = new ArrayList<>();
+        int n = DStoreSetting.SERVER.size();
+        int p = (int)Math.pow(2, n);
+        for (int i = 0; i < p; i++) {
+            String binString = Integer.toBinaryString(i);
+            ArrayList<Boolean> permutation = new ArrayList<>();
+            int falseCount = 0;
+            for (int j = 0; j < n-binString.length(); j++) {
+                permutation.add(false);
+                falseCount++;
+            }
+            for (char c : binString.toCharArray()) {
+                if (c == '0') {
+                    permutation.add(false);
+                    falseCount++;
+                } else {
+                    permutation.add(true);
+                }
+            }
+            if (falseCount >= n - DStoreSetting.getF()) {
+                res.add(permutation);
+            }
+        }
+        return res;
+    }
+
     // Make the servers in arg unreachable from the ones not in arg
     private void partition(String arg, int rpcCount) throws InvalidInputException {
         ArrayList<Integer> servers = getServers(arg);
@@ -213,7 +240,15 @@ public class Tester {
         Tester t = new Tester(numServers);
         RpcClient.setPartitioned(Collections.nCopies(numServers, Boolean.FALSE));
 
-        ConsoleReader reader = new ConsoleReader();
+        ArrayList<ArrayList<Boolean>> res = t.getPossiblePartitions();
+        for(ArrayList<Boolean> r : res) {
+            for(Boolean x : r) {
+                System.out.print(x + " ");
+            }
+            System.out.println();
+        }
+
+/*        ConsoleReader reader = new ConsoleReader();
         reader.setPrompt("> ");
         String line;
 
@@ -273,7 +308,7 @@ public class Tester {
                 System.err.println("The server list is invalid");
             }
         }
-    }
+*/    }
 
     private static class InvalidInputException extends Exception {
     }
