@@ -87,6 +87,8 @@ public class DStoreInternalImpl implements DStoreInternal {
         timerId.incrementAndGet();
         task.cancel();
         timer.cancel();
+        timer = null;
+        task = null;
     }
 
     public List<StoreAction> getCommitLog() {
@@ -132,7 +134,9 @@ public class DStoreInternalImpl implements DStoreInternal {
                 setPrimaryTimer();
             }
         };
-        timer.schedule(task, DStoreSetting.HEARTBEAT_SOFT);
+        if (timer != null) {
+            timer.schedule(task, DStoreSetting.HEARTBEAT_SOFT);
+        }
     }
 
     private void clearPrimaryTimer() {
@@ -156,7 +160,9 @@ public class DStoreInternalImpl implements DStoreInternal {
                 setTimer();
             }
         };
-        timer.schedule(task, DStoreSetting.HEARTBEAT_HARD);
+        if (timer != null) {
+            timer.schedule(task, DStoreSetting.HEARTBEAT_HARD);
+        }
     }
 
     private void clearTimer() {
