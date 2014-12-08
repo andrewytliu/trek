@@ -41,6 +41,7 @@ public class Tester {
                     System.out.print("X ");
                 }
                 RpcClient.testingStub(j).recover();
+                Thread.sleep(DStoreSetting.HEARTBEAT_HARD * 2);
             }
             System.out.println();
         }
