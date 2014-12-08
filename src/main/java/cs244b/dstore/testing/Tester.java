@@ -241,15 +241,7 @@ public class Tester {
         Tester t = new Tester(numServers);
         RpcClient.setPartitioned(Collections.nCopies(numServers, Boolean.FALSE));
 
-        ArrayList<ArrayList<Boolean>> res = t.getPossiblePartitions();
-        for(ArrayList<Boolean> r : res) {
-            for(Boolean x : r) {
-                System.out.print(x + " ");
-            }
-            System.out.println();
-        }
-
-/*        ConsoleReader reader = new ConsoleReader();
+        ConsoleReader reader = new ConsoleReader();
         reader.setPrompt("> ");
         String line;
 
@@ -309,7 +301,7 @@ public class Tester {
                 System.err.println("The server list is invalid");
             }
         }
-*/    }
+    }
 
     private static class InvalidInputException extends Exception {
     }
