@@ -20,9 +20,11 @@ public class Tester {
         partitioned = new boolean[numServers][numServers];
     }
 
-    //
-    private void normalTesting(int failTimes) throws InterruptedException {
-        System.out.println("Fail test ...");
+    private interface FailureCreator {
+        void fail(int server, int rpcCount);
+    }
+
+    private void testRun(int failTimes, FailureCreator failureCreator) throws Exception {
         System.out.print("  ");
         for (int j = 0; j < numServers; ++j) {
             System.out.print(j + " ");
@@ -31,8 +33,10 @@ public class Tester {
         for (int i = 0; i < failTimes; ++i) {
             System.out.print(i + " ");
             for (int j = 0; j < numServers; ++j) {
-                RpcClient.testingStub(j).kill(i);
+                // Fail
+                failureCreator.fail(j, i);
                 Thread.sleep(DStoreSetting.HEARTBEAT_HARD * 2);
+                // Check consistency
                 DStoreClient client = new DStoreClient();
                 client.request(StoreAction.exists("/"));
                 if (isLogConsistent()) {
@@ -40,10 +44,43 @@ public class Tester {
                 } else {
                     System.out.print("X ");
                 }
-                RpcClient.testingStub(j).recover();
+                // Recovering
+                if (!RpcClient.testingStub(j).isAlive()) {
+                    RpcClient.testingStub(j).recover();
+                }
+                reset(null);
                 Thread.sleep(DStoreSetting.HEARTBEAT_HARD * 2);
             }
             System.out.println();
+        }
+    }
+
+    private void normalTesting(int failTimes) throws Exception {
+        System.out.println("Testing crash fail ...");
+        testRun(failTimes, new FailureCreator() {
+            @Override
+            public void fail(int server, int rpcCount) {
+                RpcClient.testingStub(server).kill(rpcCount);
+            }
+        });
+        System.out.println("Testing network configuration ...");
+        for (final List<Boolean> conf : getPossiblePartitions()) {
+            testRun(failTimes, new FailureCreator() {
+                @Override
+                public void fail(int server, int rpcCount) {
+                    setPartition(conf);
+                    updateServers(rpcCount);
+                }
+            });
+        }
+    }
+
+    private void setPartition(List<Boolean> conf) {
+        for (int i = 0; i < numServers; ++i) {
+            boolean self = conf.get(i);
+            for (int j = 0; j < numServers; ++j) {
+                partitioned[i][j] = (self == conf.get(j));
+            }
         }
     }
 
