@@ -203,6 +203,7 @@ public class Tester {
         for (int i = 0; i < numServers; ++i) {
             RpcClient.testingStub(i).setHeartbeat(ms);
         }
+        DStoreSetting.setHeartbeat(ms);
     }
 
     private void printHealth() {

@@ -69,8 +69,7 @@ public class DStoreTestingImpl implements DStoreTesting {
     @Override
     public void setHeartbeat(int ms) {
         server.kill();
-        DStoreSetting.HEARTBEAT_SOFT = ms;
-        DStoreSetting.HEARTBEAT_HARD = (int)(ms * 1.2);
+        DStoreSetting.setHeartbeat(ms);
         server.restart();
     }
 }

@@ -24,6 +24,11 @@ public class DStoreSetting {
         }
     }
 
+    public static void setHeartbeat(int base) {
+        HEARTBEAT_SOFT = base;
+        HEARTBEAT_HARD = (int)(base * 1.2);
+    }
+
     public static int getF() {
         return (SERVER.size() - 1) / 2;
     }
