@@ -162,6 +162,12 @@ public class Tester {
         RpcClient.testingStub(getServer(server)).recover();
     }
 
+    private void setHeartbeat(int ms) {
+        for (int i = 0; i < numServers; ++i) {
+            RpcClient.testingStub(i).setHeartbeat(ms);
+        }
+    }
+
     private void printHealth() {
         for (int i = 0; i < numServers; ++i) {
             System.out.print(i + " ");
@@ -292,6 +298,12 @@ public class Tester {
                     t.printHealth();
                 } else if (command.equalsIgnoreCase("consistent")) {
                     System.out.println(t.isLogConsistent());
+                } else if (command.equalsIgnoreCase("heartbeat")) {
+                    if (arg1 == null) {
+                        System.err.println("[USAGE] heartbeat ms");
+                    } else {
+                        t.setHeartbeat(Integer.valueOf(arg1));
+                    }
                 } else if (command.equalsIgnoreCase("normal")) {
                     t.normalTesting(10);
                 } else {

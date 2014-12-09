@@ -44,13 +44,17 @@ public class DStoreServer extends RpcServer {
         service = null;
     }
 
-    public void recover() {
+    public void restart() {
         if (internal == null) {
             internal = new DStoreInternalImpl(replicaNumber);
             service = new DStoreServiceImpl(internal);
             addServlet(internal, "/internal");
             addServlet(service, "/service");
         }
+    }
+
+    public void recover() {
+        restart();
         new Thread(new Runnable() {
             @Override
             public void run() {

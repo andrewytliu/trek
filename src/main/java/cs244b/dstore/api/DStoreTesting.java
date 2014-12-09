@@ -15,4 +15,6 @@ public interface DStoreTesting {
     public void recover();
     // Check if the server is alive
     public boolean isAlive();
+    // Set heartbeat
+    public void setHeartbeat(int ms);
 }

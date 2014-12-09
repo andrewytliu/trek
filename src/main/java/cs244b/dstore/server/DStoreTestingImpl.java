@@ -1,5 +1,6 @@
 package cs244b.dstore.server;
 
+import cs244b.dstore.api.DStoreInternal;
 import cs244b.dstore.api.DStoreSetting;
 import cs244b.dstore.api.DStoreTesting;
 import cs244b.dstore.rpc.RpcClient;
@@ -63,5 +64,13 @@ public class DStoreTestingImpl implements DStoreTesting {
     public boolean isAlive() {
         log("isAlive() => " + server.isAlive());
         return server.isAlive();
+    }
+
+    @Override
+    public void setHeartbeat(int ms) {
+        server.kill();
+        DStoreSetting.HEARTBEAT_SOFT = ms;
+        DStoreSetting.HEARTBEAT_HARD = (int)(ms * 1.2);
+        server.restart();
     }
 }
