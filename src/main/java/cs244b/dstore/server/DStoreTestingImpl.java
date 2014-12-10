@@ -72,4 +72,9 @@ public class DStoreTestingImpl implements DStoreTesting {
         DStoreSetting.setHeartbeat(ms);
         server.restart();
     }
+
+    @Override
+    public void clear() {
+        RpcClient.clear();
+    }
 }

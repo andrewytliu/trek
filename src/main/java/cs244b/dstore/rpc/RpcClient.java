@@ -50,6 +50,11 @@ public class RpcClient {
         }
     }
 
+    public synchronized static void clear() {
+        killList.clear();
+        partitionList.clear();
+    }
+
     // TODO: need to decouple server here
     private static DStoreServer server;
     private synchronized static void updateRpcCount() {

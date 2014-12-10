@@ -17,4 +17,6 @@ public interface DStoreTesting {
     public boolean isAlive();
     // Set heartbeat
     public void setHeartbeat(int ms);
+    // Clear all remaining testing operation (fail, partition...)
+    public void clear();
 }
