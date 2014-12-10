@@ -45,6 +45,7 @@ public class Tester {
                     System.out.print("X ");
                 }
                 // Recovering
+                RpcClient.testingStub(j).clear();
                 if (!RpcClient.testingStub(j).isAlive()) {
                     RpcClient.testingStub(j).recover();
                 }
@@ -65,6 +66,7 @@ public class Tester {
         });
         System.out.println("Testing network configuration ...");
         for (final List<Boolean> conf : getPossiblePartitions()) {
+            System.out.println("Partition: " + conf);
             testRun(failTimes, new FailureCreator() {
                 @Override
                 public void fail(int server, int rpcCount) {
@@ -343,7 +345,7 @@ public class Tester {
                         t.setHeartbeat(Integer.valueOf(arg1));
                     }
                 } else if (command.equalsIgnoreCase("normal")) {
-                    t.normalTesting(10);
+                    t.normalTesting(5);
                 } else {
                     System.err.println("Unrecognized command");
                 }
