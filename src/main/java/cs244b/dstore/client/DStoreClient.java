@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.*;
 import java.util.logging.Logger;
 
 public class DStoreClient {
@@ -45,11 +46,19 @@ public class DStoreClient {
         }
     }
 
-    public StoreResponse request(StoreAction action) {
+    public StoreResponse request(final StoreAction action) {
+        ExecutorService executor = Executors.newCachedThreadPool();
         StoreResponse resp;
         while (true) {
             try {
-                resp = RpcClient.serviceStub(primary).request(action, client, request);
+                Callable<StoreResponse> task = new Callable<StoreResponse>() {
+                    @Override
+                    public StoreResponse call() throws Exception {
+                        return RpcClient.serviceStub(primary).request(action, client, request);
+                    }
+                };
+                Future<StoreResponse> future = executor.submit(task);
+                resp = future.get(DStoreSetting.HEARTBEAT_SOFT, TimeUnit.MILLISECONDS);
                 if (resp == null) return null;
                 if (resp.getStatus() != StoreResponse.Status.NOT_PRIMARY) break;
             } catch (Throwable t) {
