@@ -25,11 +25,11 @@ public class RpcClient {
     private static List<Integer> killList = new LinkedList<>();
     private static Map<Integer, List<List<Boolean>>> partitionList = new HashMap<>();
 
-    public synchronized static void setPartitioned(List<Boolean> values) {
+    public static void setPartitioned(List<Boolean> values) {
         partitioned = values;
     }
 
-    public synchronized static void setPartitioned(List<List<Boolean>> values, int rpcCount) {
+    public static void setPartitioned(List<List<Boolean>> values, int rpcCount) {
         if (rpcCount == 0) {
             for (int i = 0; i < DStoreSetting.SERVER.size(); ++i) {
                 RpcClient.testingStub(i).setPartitioned(values.get(i));
@@ -39,11 +39,11 @@ public class RpcClient {
         }
     }
 
-    private synchronized static boolean isPartitioned(int sid) {
+    private static boolean isPartitioned(int sid) {
         return partitioned.get(sid);
     }
 
-    public synchronized static void setKill(DStoreServer server, int rpcCount) {
+    public static void setKill(DStoreServer server, int rpcCount) {
         if (rpcCount == 0) {
             server.kill();
         } else {
@@ -52,14 +52,14 @@ public class RpcClient {
         }
     }
 
-    public synchronized static void clear() {
+    public static void clear() {
         killList.clear();
         partitionList.clear();
     }
 
     // TODO: need to decouple server here
     private static DStoreServer server;
-    private synchronized static void updateRpcCount() {
+    private static void updateRpcCount() {
         List<Integer> updatedKillList = new LinkedList<>();
         for (int r : killList) {
             if (r == 1) {
