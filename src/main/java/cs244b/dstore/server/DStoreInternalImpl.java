@@ -369,6 +369,24 @@ public class DStoreInternalImpl implements DStoreInternal {
             normalCondition.signalAll();
             normalLock.unlock();
 
+            // Semaphore for uncommitted log
+            final int logStart = this.commit;
+            final int logEnd = this.op;
+            for (int i = logStart; i <= logEnd; ++i) {
+                Semaphore semaphore = new Semaphore(-DStoreSetting.getF() + 1);
+                voteLock.put(i, semaphore);
+                voteSet.put(i, new HashSet<Integer>());
+            }
+            // Thread for waiting
+            new Runnable() {
+                @Override
+                public void run() {
+                    for (int i = logStart; i <= logEnd; ++i) {
+                        doCommit(i);
+                    }
+                }
+            }.run();
+
             // Sending startView
             clearPrimaryTimer();
             for (int i = 0; i < DStoreSetting.SERVER.size(); ++i) {
