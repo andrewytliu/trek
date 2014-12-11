@@ -29,7 +29,7 @@ public class DStoreServiceImpl implements DStoreService {
             logger.log(Level.INFO, str);
         } else {
             try {
-                RpcClient.monitorStub().log(internal.getReplicaNumber(), str);
+                RpcClient.monitorStub().log(internal.getReplicaNumber(), "C: " + str);
             } catch (Exception e) {
                 logger.log(Level.WARNING, "Could not log to monitor");
                 logger.log(Level.INFO, str);

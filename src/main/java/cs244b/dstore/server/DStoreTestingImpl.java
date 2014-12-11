@@ -23,7 +23,7 @@ public class DStoreTestingImpl implements DStoreTesting {
     }
 
     private void log(String l) {
-        String str = "XX " + l;
+        String str = "T: " + l;
         if (DStoreSetting.MONITOR == null) {
             logger.log(Level.INFO, str);
         } else {
