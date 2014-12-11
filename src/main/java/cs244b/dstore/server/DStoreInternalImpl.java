@@ -318,7 +318,7 @@ public class DStoreInternalImpl implements DStoreInternal {
         // Drop the message if the sender is behind
         if (this.view > view) return;
         // Recovering
-        if (this.view < view) {
+        if (this.view < view || commit > op) {
             recover();
             return;
         }
