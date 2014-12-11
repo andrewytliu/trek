@@ -298,6 +298,13 @@ public class DStoreInternalImpl implements DStoreInternal {
         viewSet.get(view).add(replica);
         // Clear timer
         clearTimer();
+        // Send startViewChange if received higher number
+        if (view > this.view) {
+            this.view = view;
+            for (int i = 0; i < DStoreSetting.SERVER.size(); ++i) {
+                RpcClient.internalStub(i).startViewChange(view, replicaNumber);
+            }
+        }
         // Receiving f vote: reply
         if (viewSet.get(view).size() == DStoreSetting.getF()) {
             RpcClient.internalStub(view % DStoreSetting.SERVER.size()).
