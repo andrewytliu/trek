@@ -73,20 +73,24 @@ public class Tester {
             testRun(failTimes, new FailureCreator() {
                 @Override
                 public void fail(int server, int rpcCount) {
-                    setPartition(conf);
-                    updateServers(rpcCount);
+                    setPartition(conf, server, rpcCount);
                 }
             });
         }
     }
 
-    private void setPartition(List<Boolean> conf) {
+    private void setPartition(List<Boolean> conf, int server, int rpcCount) {
         for (int i = 0; i < numServers; ++i) {
             boolean self = conf.get(i);
             for (int j = 0; j < numServers; ++j) {
                 partitioned[i][j] = (self != conf.get(j));
             }
         }
+        List<List<Boolean>> result = new ArrayList<>();
+        for (int i = 0; i < numServers; ++i) {
+            result.add(getPartitioned(i));
+        }
+        RpcClient.testingStub(server).setPartitioned(result, rpcCount);
     }
 
     private ArrayList<ArrayList<Boolean>> getPossiblePartitions() {
@@ -117,7 +121,7 @@ public class Tester {
     }
 
     // Make the servers in arg unreachable from the ones not in arg
-    private void partition(String arg, int rpcCount) throws InvalidInputException {
+    private void partition(String arg) throws InvalidInputException {
         ArrayList<Integer> servers = getServers(arg);
         for (int i = 0; i < numServers; i++) {
             for (int j = 0; j < numServers; j++) {
@@ -127,11 +131,11 @@ public class Tester {
                 }
             }
         }
-        updateServers(rpcCount);
+        updateServers();
     }
 
     // Make the servers in arg reachable from each other
-    private void group(String arg, int rpcCount) throws InvalidInputException {
+    private void group(String arg) throws InvalidInputException {
         ArrayList<Integer> servers = getServers(arg);
         for (int i = 0; i < numServers; i++) {
             for (int j = 0; j < numServers; j++) {
@@ -140,7 +144,7 @@ public class Tester {
                 }
             }
         }
-        updateServers(rpcCount);
+        updateServers();
     }
 
     // Make the servers in arg reachable from everyone
@@ -158,12 +162,12 @@ public class Tester {
                 }
             }
         }
-        updateServers(0);
+        updateServers();
     }
 
-    private void updateServers(int rpcCount) {
+    private void updateServers() {
         for (int i = 0; i < numServers; i++) {
-            RpcClient.testingStub(i).setPartitioned(getPartitioned(i), rpcCount);
+            RpcClient.testingStub(i).setPartitioned(getPartitioned(i));
         }
     }
 
@@ -305,19 +309,15 @@ public class Tester {
                     // TODO
                 } else if (command.equalsIgnoreCase("partition")) {
                     if (arg1 == null) {
-                        System.err.println("[USAGE] parition server1|... [rpcCount]");
+                        System.err.println("[USAGE] parition server1|...");
                     } else {
-                        int rpcCount = 0;
-                        if (arg2 != null) rpcCount = Integer.valueOf(arg2);
-                        t.partition(arg1, rpcCount);
+                        t.partition(arg1);
                     }
                 } else if (command.equalsIgnoreCase("group")) {
                     if (arg1 == null) {
-                        System.err.println("[USAGE] group server1|server2|... [rpcCount]");
+                        System.err.println("[USAGE] group server1|server2|...");
                     } else {
-                        int rpcCount = 0;
-                        if (arg2 != null) rpcCount = Integer.valueOf(arg2);
-                        t.group(arg1, rpcCount);
+                        t.group(arg1);
                     }
                 } else if (command.equalsIgnoreCase("reset")) {
                     t.reset(arg1);

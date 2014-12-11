@@ -23,15 +23,17 @@ public class RpcClient {
     private static List<Boolean> partitioned;
 
     private static List<Integer> killList = new LinkedList<>();
-    private static Map<Integer, List<Boolean>> partitionList = new HashMap<>();
+    private static Map<Integer, List<List<Boolean>>> partitionList = new HashMap<>();
 
     public synchronized static void setPartitioned(List<Boolean> values) {
         partitioned = values;
     }
 
-    public synchronized static void setPartitioned(List<Boolean> values, int rpcCount) {
+    public synchronized static void setPartitioned(List<List<Boolean>> values, int rpcCount) {
         if (rpcCount == 0) {
-            setPartitioned(values);
+            for (int i = 0; i < DStoreSetting.SERVER.size(); ++i) {
+                RpcClient.testingStub(i).setPartitioned(values.get(i));
+            }
         } else {
             partitionList.put(rpcCount, values);
         }
@@ -68,11 +70,11 @@ public class RpcClient {
         }
         killList = updatedKillList;
 
-        Map<Integer, List<Boolean>> updatedPartitionList = new HashMap<>();
+        Map<Integer, List<List<Boolean>>> updatedPartitionList = new HashMap<>();
         for (int r : partitionList.keySet()) {
-            List<Boolean> old = partitionList.get(r);
+            List<List<Boolean>> old = partitionList.get(r);
             if (r == 1) {
-                setPartitioned(old);
+                setPartitioned(old, 0);
             } else {
                 updatedPartitionList.put(--r, old);
             }
