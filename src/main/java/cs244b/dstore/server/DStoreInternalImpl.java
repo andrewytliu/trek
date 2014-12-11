@@ -21,6 +21,7 @@ public class DStoreInternalImpl implements DStoreInternal {
     // Normal property
     private int replicaNumber;
     private int view;
+    private int latestNormalView;
     private Status status;
     private int op;
     private List<StoreAction> log;
@@ -52,6 +53,7 @@ public class DStoreInternalImpl implements DStoreInternal {
     public DStoreInternalImpl(int number) {
         replicaNumber = number;
         view = 0;
+        latestNormalView = 0;
         status = Status.NORMAL;
         op = -1;
         log = new ArrayList<>();
@@ -299,7 +301,7 @@ public class DStoreInternalImpl implements DStoreInternal {
         // Receiving f vote: reply
         if (viewSet.get(view).size() == DStoreSetting.getF()) {
             RpcClient.internalStub(view % DStoreSetting.SERVER.size()).
-                    doViewChange(view, log, this.view, op, commit, replicaNumber);
+                    doViewChange(view, log, latestNormalView, op, commit, replicaNumber);
         }
     }
 
@@ -357,6 +359,7 @@ public class DStoreInternalImpl implements DStoreInternal {
         this.op = op;
         this.commit = commit;
         this.view = view;
+        this.latestNormalView = view;
         // Handling uncommitted operation
         if (commit < log.size() - 1) {
             for (int i = commit + 1; i < log.size(); ++i) {
