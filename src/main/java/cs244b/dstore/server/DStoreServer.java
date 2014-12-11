@@ -55,19 +55,7 @@ public class DStoreServer extends RpcServer {
 
     public void recover() {
         restart();
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                internal.startRecovery();
-                try {
-                    Thread.sleep(DStoreSetting.RECOVERY_DELAY);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } finally {
-                    internal.doRecovery();
-                }
-            }
-        }).start();
+        internal.recover();
     }
 
     public boolean isAlive() {

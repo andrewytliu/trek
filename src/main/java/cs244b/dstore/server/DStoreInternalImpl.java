@@ -99,6 +99,22 @@ public class DStoreInternalImpl implements DStoreInternal {
         task = null;
     }
 
+    public void recover() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                startRecovery();
+                try {
+                    Thread.sleep(DStoreSetting.RECOVERY_DELAY);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } finally {
+                    doRecovery();
+                }
+            }
+        }).start();
+    }
+
     public List<StoreAction> getCommitLog() {
         if (commit >= 0) {
             return log.subList(0, commit + 1);
@@ -258,8 +274,11 @@ public class DStoreInternalImpl implements DStoreInternal {
         if (status != Status.NORMAL) return;
         // Drop the message if the sender is behind
         if (this.view > view) return;
-        // TODO: perform state transfer
-        if (this.view < view) return;
+        // Recovering
+        if (this.view < view || this.op + 1 < op) {
+            recover();
+            return;
+        }
         // Make sure we have all of the previous log
         if (this.op + 1 != op) return;
         // Commit previous log
@@ -279,8 +298,11 @@ public class DStoreInternalImpl implements DStoreInternal {
         if (status != Status.NORMAL) return;
         // Drop the message if the sender is behind
         if (this.view > view) return;
-        // TODO: perform state transfer
-        if (this.view < view) return;
+        // Recovering
+        if (this.view < view || this.op + 1 < op) {
+            recover();
+            return;
+        }
         // Check if there is duplicated prepareOk and then release semaphore
         if (voteLock.containsKey(op) && !voteSet.get(op).contains(replica)) {
             voteLock.get(op).release();
@@ -295,8 +317,11 @@ public class DStoreInternalImpl implements DStoreInternal {
         if (status != Status.NORMAL) return;
         // Drop the message if the sender is behind
         if (this.view > view) return;
-        // TODO: perform state transfer
-        if (this.view < view) return;
+        // Recovering
+        if (this.view < view) {
+            recover();
+            return;
+        }
         clearTimer();
         doCommit(commit);
     }
