@@ -380,7 +380,8 @@ public class DStoreInternalImpl implements DStoreInternal {
     @Override
     public void startView(int view, List<StoreAction> log, int op, int commit) {
         log("startView(v: " + view + ", log, op: " + op + ", ci: " + commit + ")");
-        if (this.view >= view) return;
+        if (this.view > view ||
+                (this.status != Status.VIEWCHANGE && this.view == view)) return;
 
         status = Status.NORMAL;
 
