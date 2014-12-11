@@ -59,8 +59,8 @@ public class DStoreClient {
                 };
                 Future<StoreResponse> future = executor.submit(task);
                 resp = future.get(DStoreSetting.HEARTBEAT_SOFT, TimeUnit.MILLISECONDS);
-                if (resp == null) return null;
-                if (resp.getStatus() != StoreResponse.Status.NOT_PRIMARY) break;
+                if (resp != null &&
+                        resp.getStatus() != StoreResponse.Status.NOT_PRIMARY) break;
             } catch (Throwable t) {
                 //TODO: Handle ServiceTimeoutException?
             }
