@@ -64,6 +64,9 @@ public class Tester {
                 RpcClient.testingStub(server).kill(rpcCount);
             }
         });
+    }
+
+    private void partitionTesting(int failTimes) throws Exception {
         System.out.println("Testing network configuration ...");
         for (final List<Boolean> conf : getPossiblePartitions()) {
             System.out.println("Partition: " + conf);
@@ -81,7 +84,7 @@ public class Tester {
         for (int i = 0; i < numServers; ++i) {
             boolean self = conf.get(i);
             for (int j = 0; j < numServers; ++j) {
-                partitioned[i][j] = (self == conf.get(j));
+                partitioned[i][j] = (self != conf.get(j));
             }
         }
     }
@@ -90,7 +93,7 @@ public class Tester {
         ArrayList<ArrayList<Boolean>> res = new ArrayList<>();
         int n = DStoreSetting.SERVER.size();
         int p = (int)Math.pow(2, n);
-        for (int i = 0; i < p; i++) {
+        for (int i = 1; i < p; i++) {
             String binString = Integer.toBinaryString(i);
             ArrayList<Boolean> permutation = new ArrayList<>();
             int falseCount = 0;
@@ -344,8 +347,10 @@ public class Tester {
                     } else {
                         t.setHeartbeat(Integer.valueOf(arg1));
                     }
-                } else if (command.equalsIgnoreCase("normal")) {
+                } else if (command.equalsIgnoreCase("normaltest")) {
                     t.normalTesting(5);
+                } else if (command.equalsIgnoreCase("partitiontest")) {
+                    t.partitionTesting(5);
                 } else {
                     System.err.println("Unrecognized command");
                 }
