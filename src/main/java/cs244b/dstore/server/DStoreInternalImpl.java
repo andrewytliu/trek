@@ -259,7 +259,7 @@ public class DStoreInternalImpl implements DStoreInternal {
         recoveryLock.acquireUninterruptibly();
         doCommit(recoveryCommit);
         status = Status.NORMAL;
-
+        latestNormalView = view;
         normalLock.lock();
         normalCondition.signalAll();
         normalLock.unlock();
@@ -390,6 +390,7 @@ public class DStoreInternalImpl implements DStoreInternal {
             this.log = vcLog;
 
             status = Status.NORMAL;
+            latestNormalView = this.view;
             normalLock.lock();
             normalCondition.signalAll();
             normalLock.unlock();
