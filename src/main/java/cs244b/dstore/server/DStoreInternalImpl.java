@@ -324,7 +324,7 @@ public class DStoreInternalImpl implements DStoreInternal {
             }
         }
         // Receiving f vote: reply
-        if (viewSet.get(view).size() == DStoreSetting.getF()) {
+        if (viewSet.get(view).size() == DStoreSetting.getF() + 1) {
             RpcClient.internalStub(view % DStoreSetting.SERVER.size()).
                     doViewChange(view, log, latestNormalView, op, commit, replicaNumber);
         }
