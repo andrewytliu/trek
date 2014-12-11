@@ -243,7 +243,11 @@ public class DStoreInternalImpl implements DStoreInternal {
         recoveryLock.acquireUninterruptibly();
         doCommit(recoveryCommit);
         status = Status.NORMAL;
+
+        normalLock.lock();
         normalCondition.signalAll();
+        normalLock.unlock();
+
         initTimer();
     }
 
@@ -359,7 +363,10 @@ public class DStoreInternalImpl implements DStoreInternal {
             this.log = vcLog;
 
             status = Status.NORMAL;
+            normalLock.lock();
             normalCondition.signalAll();
+            normalLock.unlock();
+
             // Sending startView
             clearPrimaryTimer();
             for (int i = 0; i < DStoreSetting.SERVER.size(); ++i) {
@@ -376,7 +383,11 @@ public class DStoreInternalImpl implements DStoreInternal {
         if (this.view >= view) return;
 
         status = Status.NORMAL;
+
+        normalLock.lock();
         normalCondition.signalAll();
+        normalLock.unlock();
+
         this.log = log;
         this.op = op;
         this.commit = commit;
