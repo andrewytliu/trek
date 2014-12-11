@@ -64,6 +64,7 @@ public class DStoreClient {
             } catch (Throwable t) {
                 //TODO: Handle ServiceTimeoutException?
             }
+            primary = ++primary % DStoreSetting.SERVER.size();
             switchPrimary();
         }
         request++;
