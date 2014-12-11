@@ -317,7 +317,9 @@ public class DStoreInternalImpl implements DStoreInternal {
         // Send startViewChange if received higher number
         if (view > this.view) {
             this.view = view;
+            viewSet.get(view).add(replicaNumber);
             for (int i = 0; i < DStoreSetting.SERVER.size(); ++i) {
+                if (i == replicaNumber) continue;
                 RpcClient.internalStub(i).startViewChange(view, replicaNumber);
             }
         }
