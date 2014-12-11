@@ -368,7 +368,7 @@ public class DStoreInternalImpl implements DStoreInternal {
         if (!doViewSet.containsKey(view)) {
             doViewSet.put(view, new HashSet<Integer>());
             // TODO: should we group it with group number?
-            vcView = this.view;
+            vcView = this.latestNormalView;
             vcOp = this.op;
             vcLog = this.log;
             vcCommit = this.commit;
