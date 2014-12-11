@@ -67,7 +67,7 @@ public class Tester {
     }
 
     private void partitionTesting(int failTimes) throws Exception {
-        System.out.println("Testing network configuration ...");
+        System.out.println("Testing network partition ...");
         for (final List<Boolean> conf : getPossiblePartitions()) {
             System.out.println("Partition: " + conf);
             testRun(failTimes, new FailureCreator() {
