@@ -286,7 +286,8 @@ public class DStoreInternalImpl implements DStoreInternal {
     @Override
     public void startViewChange(int view, int replica) {
         log("startViewChange(v: " + view + ", r: " + replica + ")");
-        if (this.view >= view) return;
+        if (this.view > view ||
+                (this.status != Status.VIEWCHANGE && this.view == view)) return;
         // Change state
         status = Status.VIEWCHANGE;
         if (!viewSet.containsKey(view)) {
@@ -306,7 +307,8 @@ public class DStoreInternalImpl implements DStoreInternal {
     public void doViewChange(int view, List<StoreAction> log,
                              int oldView, int op, int commit, int replica) {
         log("doViewChange(v: " + view + ", log, ov: " + oldView + ", op: " + op + ", ci: " + commit + ", r: " + replica + ")");
-        if (this.view >= view) return;
+        if (this.view > view ||
+                (this.status != Status.VIEWCHANGE && this.view == view)) return;
         // Change state
         status = Status.VIEWCHANGE;
         // Check view: something must be wrong here
