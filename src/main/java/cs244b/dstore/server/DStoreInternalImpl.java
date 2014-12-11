@@ -10,6 +10,7 @@ import cs244b.dstore.storage.StoreResponse;
 import java.util.*;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -26,6 +27,7 @@ public class DStoreInternalImpl implements DStoreInternal {
     private int op;
     private List<StoreAction> log;
     private int commit;
+    private ReentrantLock normalLock;
     // Prepare vote
     private Map<Integer, Semaphore> voteLock;
     private Map<Integer, Set<Integer>> voteSet;
@@ -55,6 +57,7 @@ public class DStoreInternalImpl implements DStoreInternal {
         view = 0;
         latestNormalView = 0;
         status = Status.NORMAL;
+        normalLock = new ReentrantLock();
         op = -1;
         log = new ArrayList<>();
         commit = -1;
@@ -153,6 +156,9 @@ public class DStoreInternalImpl implements DStoreInternal {
             public void run() {
                 if (id != timerId.get()) return;
                 log("Normal Timer Ticked");
+                if (status == Status.NORMAL) {
+                    normalLock.lock();
+                }
                 status = Status.VIEWCHANGE;
                 view++;
                 for (int i = 0; i < DStoreSetting.SERVER.size(); ++i) {
@@ -176,6 +182,7 @@ public class DStoreInternalImpl implements DStoreInternal {
     public int startTransactionPrimary(StoreAction action) {
         log("StartTransactionPrimary()");
         // TODO: need to redirect the request to primary
+        normalLock.lock();
         if (!isPrimary()) return -1;
 
         // Putting the action in log and increase the op number
@@ -191,6 +198,7 @@ public class DStoreInternalImpl implements DStoreInternal {
             if (i == replicaNumber) continue;
             RpcClient.internalStub(i).prepare(view, action, op, commit);
         }
+        normalLock.unlock();
         return op;
     }
 
@@ -221,6 +229,7 @@ public class DStoreInternalImpl implements DStoreInternal {
         // Setup
         nonce = (int) (Math.random() * 1e5);
         status = Status.RECOVERING;
+        normalLock.lock();
         for (int i = 0; i < DStoreSetting.SERVER.size(); ++i) {
             if (i == replicaNumber) continue;
             RpcClient.internalStub(i).recovery(replicaNumber, nonce);
@@ -232,6 +241,7 @@ public class DStoreInternalImpl implements DStoreInternal {
         recoveryLock.acquireUninterruptibly();
         doCommit(recoveryCommit);
         status = Status.NORMAL;
+        normalLock.unlock();
         initTimer();
     }
 
@@ -291,6 +301,9 @@ public class DStoreInternalImpl implements DStoreInternal {
         if (this.view > view ||
                 (this.status != Status.VIEWCHANGE && this.view == view)) return;
         // Change state
+        if (status == Status.NORMAL) {
+            normalLock.lock();
+        }
         status = Status.VIEWCHANGE;
         if (!viewSet.containsKey(view)) {
             viewSet.put(view, new HashSet<Integer>());
@@ -319,6 +332,9 @@ public class DStoreInternalImpl implements DStoreInternal {
         if (this.view > view ||
                 (this.status != Status.VIEWCHANGE && this.view == view)) return;
         // Change state
+        if (status == Status.NORMAL) {
+            normalLock.lock();
+        }
         status = Status.VIEWCHANGE;
         // Check view: something must be wrong here
         if (view % DStoreSetting.SERVER.size() != replicaNumber) return;
@@ -345,6 +361,10 @@ public class DStoreInternalImpl implements DStoreInternal {
             this.op = vcOp;
             this.commit = vcCommit;
             this.log = vcLog;
+
+            if (status != Status.NORMAL) {
+                normalLock.unlock();
+            }
             status = Status.NORMAL;
             // Sending startView
             clearPrimaryTimer();
@@ -361,6 +381,9 @@ public class DStoreInternalImpl implements DStoreInternal {
         log("startView(v: " + view + ", log, op: " + op + ", ci: " + commit + ")");
         if (this.view >= view) return;
 
+        if (status != Status.NORMAL) {
+            normalLock.unlock();
+        }
         status = Status.NORMAL;
         this.log = log;
         this.op = op;
