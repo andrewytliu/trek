@@ -305,9 +305,7 @@ public class Tester {
             String arg2 = (input.length > 2) ? input[2] : null;
 
             try {
-                if (command.equalsIgnoreCase("help")) {
-                    // TODO
-                } else if (command.equalsIgnoreCase("partition")) {
+                if (command.equalsIgnoreCase("partition")) {
                     if (arg1 == null) {
                         System.err.println("[USAGE] parition server1|...");
                     } else {
