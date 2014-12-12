@@ -5,7 +5,7 @@ A key-value store with ZooKeeper-like client semantics, backed by Viewstamped Re
 The `run` script assumes a 3-node server cluster on `corn19`, `corn20` and `corn21`, with a monitor on `corn22`. To run in other configurations, modify `bin/run`.
 
 ## Compiling
-Run `bin/run compile`.
+Make sure you have JDK 7 and Maven insatlled and run `bin/run compile`.
 
 ## Usage
 In use, the system consists of a cluster of server replicas, clients and / or a tester program and a monitor for collecting server internal logs.
