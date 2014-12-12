@@ -1,56 +1,23 @@
-# Job List
-## Done
-* VR: Normal phase commit
-* VR: View change
-* VR: Recovery
-* KeyValueStore
+# Trek: Testable Replicated Key-Value Store
 
-## Todo
-* Testing coordinator
-  * Partition testing implemented; not yet tested
-  * NOT DONE: Every server is always reachable from the client because there is currently
-    no way for the monitor to tell the client which servers are partitioned
-    * Need to implement the testing service in DStoreClient too
-  * To do: Logging
-* Handle timeouts in client (see to do in DStoreClient)
-* VR: Take a look into concurrency issue
-* VR: Efficient recovery
-* VR: State transfer
+A key-value store with ZooKeeper-like client semantics, backed by Viewstamped Replication, and with the ability to simulate failures.
 
-## Nice to have
-* Command line argument parser for DStoreServer and DStoreClient
+The `run` script assumes a 3-node server cluster on `corn19`, `corn20` and `corn21`, with a monitor on `corn22`. To run in other configurations, modify `bin/run`.
 
-# Test plan
-## Correctness
-* Fail model: Crash or network partition
-* Fail node: Primary or slave
-* Recover timing: Before/during/after view change
-* Correctness: By comparing every entry in log
+## Compiling
+Run `bin/run compile`.
 
-Suppose k = 3 the normal action would be (primary = 1):
+## Usage
+In use, the system consists of a cluster of server replicas, clients and / or a tester program and a monitor for collecting server internal logs.
 
-1. 1 -> 2 : prepare
-2. 1 -> 3 : prepare
-3. 2 -> 1 : prepareOK
-4. 3 -> 1 : prepareOK
-5. 1 -> 2 : commit
-6. 1 -> 3 : commit
+### Servers
+Start by running `bin/run server SERVER_ID`.
 
-After each step, test to fail the nodes by 4 times (fail model * fail node)
+### Monitor
+Start by running `bin/run monitor`.
 
-## Implementation
-* Additional DStoreTesting interface that allows the monitor to set whether a server is
-  partitioned from every other server
-* RpcClient checks if sid is partitioned from local server; if so, return no-op stub (internal)
-  or stub where each method call throws ServiceTimeoutException (service)
-* Testing crashes: Probably easier to just kill processes locally? It probably isn't impossible
-  to implement a method that kills the server, but we'd still need to bring the server back up
-  manually for recovery
-  * If we don't actually kill the server and instead just ignore all requests, then it becomes
-    like the partitioning case
-  * Maybe extend the partitioning case? Crash = partition + clear log or something
+### Clients
+Start by running `bin/run client`.
 
-## Benchmark
-* Need to test for RPC speed first
-* Is this really important?
-* Conclusion: Should probably just skip
+### Tester program
+Start by running `bin/run tester`.
