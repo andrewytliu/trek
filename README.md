@@ -11,13 +11,21 @@ Run `bin/run compile`.
 In use, the system consists of a cluster of server replicas, clients and / or a tester program and a monitor for collecting server internal logs.
 
 ### Servers
-Start by running `bin/run server SERVER_ID`.
+Start by running `bin/run server server_id`.
 
 ### Monitor
 Start by running `bin/run monitor`.
 
 ### Clients
 Start by running `bin/run client`.
+
+#### Operations
+* Create node: `create path data [isSequential=false]`
+* Delete node: `delete path [ignoreVersion=false]`
+* Test node existence: `exists path`
+* Get node data: `getData path`
+* Set node data: `setData path data [ignoreVersion=false]`
+* List node children: `getChildren path`
 
 ### Tester program
 Start by running `bin/run tester`.
